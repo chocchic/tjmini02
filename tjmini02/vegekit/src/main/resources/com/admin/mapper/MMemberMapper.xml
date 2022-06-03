@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="com.admin.mapper.MMemberMapper">
+ 
+ 
+ 	
+ 	<select id="getList" resultType="aMemberVO">
+ 		SELECT 
+ 			*
+ 		FROM
+ 			member
+ 	</select>
+ 
+ 	<sql id="criteria">
+ 		<trim prefix="where" prefixOverrides="or">
+           <foreach item="type" collection="typeArr">
+              <trim prefix="or">
+                <choose>
+                   <when test="type == 'N'.toString()">
+                      mnum = #{keyword}
+                   </when>
+                   <when test="type == 'M'.toString()">
+                      mname like '%'||#{keyword}||'%'
+                   </when>   
+                   <when test="type == 'I'.toString()">
+                      mid like '%'||#{keyword}||'%'
+                   </when>
+                   <when test="type == 'T'.toString()">
+                      mtier like '%'||#{keyword}||'%'
+                   </when>                     
+                </choose>               
+              </trim>
+           </foreach>
+        </trim>
+ 	</sql>
+ 
+ 
+ 	<select id="getListWithPaging" resultType="aMemberVO">
+      <![CDATA[
+         SELECT 
+         	mem.mnum, mem.mid, mem.mpw, mem.mname, mem.mtel, mem.maddr,
+ 			mem.mpnum, mem.mnutr1, mem.mnutr2, mem.mnutr3, mem.mdiet, mem.mtier, 
+ 			mem.mrdate, mem.mtotal, mem.is_sale, mem.is_alive, auth.auth
+         FROM
+             (SELECT 
+             	rownum r, mnum, mid, mpw, mname, mtel, maddr,
+ 				mpnum, mnutr1, mnutr2, mnutr3, mdiet, mtier, 
+ 				mrdate, mtotal, is_sale, is_alive
+             FROM 
+                (SELECT /*+ INDEX_DESC(product pk_product)*/ 
+                	mnum, mid, mpw, mname, mtel, maddr,
+		 			mpnum, mnutr1, mnutr2, mnutr3, mdiet, mtier, 
+		 			mrdate, mtotal, is_sale, is_alive
+                FROM 
+                	member
+       ]]>
+       
+       <include refid="criteria"></include>
+       
+       <![CDATA[
+                ) 
+             WHERE 
+             	rownum <= (#{pageNum} * #{listQty} )) mem
+         LEFT OUTER JOIN member_auth auth ON mem.mnum = auth.mnum 
+         WHERE 
+         	r > (#{pageNum} - 1) * #{listQty} 
+       ]]>
+       <choose>
+          <when test="auth != ''.toString()">
+            	AND 
+ 				auth.auth = #{auth}
+          </when>
+          <otherwise>
+             	AND 
+ 				auth.auth = 'ROLE_MEMBER'
+          </otherwise>                
+       </choose>  
+     
+   </select>
+ 
+ 	<!-- 전체 글의 개수 가져오기 : 전체 일때랑 검색했을때 두방법 모두 사용 -->
+ 	<select id="getTotalCount" resultType="int">
+ 		SELECT
+ 			count(*) 
+ 		FROM 
+ 			member mem
+ 			LEFT OUTER JOIN member_auth auth ON mem.mnum = auth.mnum
+ 		WHERE
+ 			auth.auth = #{auth} 
+ 		<trim prefix="and" prefixOverrides="or">
+           <foreach item="type" collection="typeArr">
+              <trim prefix="or">
+                <choose>
+                   <when test="type == 'N'.toString()">
+                      mem.mnum = #{keyword}
+                   </when>
+                   <when test="type == 'M'.toString()">
+                      mem.mname like '%'||#{keyword}||'%'
+                   </when>   
+                   <when test="type == 'I'.toString()">
+                      mem.mid like '%'||#{keyword}||'%'
+                   </when>
+                   <when test="type == 'T'.toString()">
+                      mem.mtier like '%'||#{keyword}||'%'
+                   </when>                     
+                </choose>               
+              </trim>
+           </foreach>
+        </trim>
+ 	</select>
+ 
+ 
+ 	<!-- 회원 한개 가져오기 -->
+ 	<select id="read" resultType="aMemberVO">
+ 		SELECT 
+ 			mem.mnum, mem.mid, mem.mpw, mem.mname, mem.mtel, mem.maddr, mem.mpnum, 
+ 			mem.mnutr1, mem.mnutr2, mem.mnutr3, mem.mdiet, mem.mtier, 
+ 			mem.mrdate, mem.mtotal, mem.is_sale, mem.is_alive, auth.auth 
+ 		FROM 
+ 			member mem
+ 			LEFT OUTER JOIN member_auth auth 
+ 			ON mem.mnum = auth.mnum
+ 		WHERE
+ 			mem.mnum = #{mnum}
+ 		<choose>
+          <when test="auth != ''.toString()">
+            	AND 
+ 				auth.auth = #{auth}
+          </when>
+          <otherwise>
+             	AND 
+ 				auth.auth = 'ROLE_MEMBER'
+          </otherwise>                
+       </choose> 
+ 			
+ 	</select>
+ 
+ 	<!-- 회원 삭제 -->
+ 	<delete id="delete">
+ 		DELETE FROM 
+ 			member 
+ 		WHERE 
+ 			mnum = #{mnum}
+ 	</delete>
+ 
+ 
+ 	<!-- 회원 수정 -->
+ 	<update id="update">
+ 		UPDATE
+ 			member
+ 		SET
+ 			mid= #{mid}, mpw= #{mpw}, mname= #{mname}, mtel= #{mtel}, maddr =#{maddr},
+ 			mpnum= #{mpnum}, mnutr1= #{mnutr1}, mnutr2= #{mnutr2}, mnutr3= #{mnutr3}, mdiet= #{mdiet},
+ 			mtier= #{mtier}, mrdate= #{mrdate}, mtotal= #{mtotal}, is_sale= #{is_sale},
+ 			is_alive= #{is_alive}
+ 		WHERE
+ 			mnum = #{mnum}
+ 	</update>
+ 
+ 
+ 	<!-- 관리자 권한 부여 -->
+ 	<insert id="authorize">
+ 	INSERT INTO MEMBER_AUTH (MNUM, AUTH)
+		SELECT #{mnum}, #{auth} FROM DUAL 
+		WHERE NOT EXISTS 
+		(SELECT MNUM, AUTH FROM MEMBER_AUTH WHERE AUTH = #{auth} AND MNUM = #{mnum})
+ 	</insert>
+ 
+ 	<select id="is_authorize">
+ 		select 
+ 			count(*)
+ 		from
+ 			member_auth
+ 		where
+ 			mnum = #{mnum} AND auth = #{auth}
+ 		
+ 	</select>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+ </mapper>

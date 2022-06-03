@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shop.mapper.KakaoMapper">
+	<select id="getSumCart" resultType="int">
+		select NVL(sum(cart.pcount * product.pprice),0) from cart join product on (product.pnum=cart.pnum) where mnum=#{mnum}
+	</select>
+	
+		<select id="getCoupon" resultType="couponVO">
+		select * from coupon where cpnum=#{cpnum}
+	</select>
+	<insert id="setOrdSeq">
+		insert into oder
+		values(#{onum}, #{mem.mnum},#{mem.mpnum}, #{mem.maddr}, #{mem.mname},#{mem.mtel}, #{ofee},#{total_amount}, #{cpwon},#{mem.per},'N','notyet', sysdate,'0')
+	</insert>
+	<select id="getOrdSeq" resultType="Long">
+		select onum_seq.nextval from dual
+	</select>
+	<select id="getCartCount" resultType="int">
+		select NVL(sum(pcount),0) from cart where mnum=#{mnum}
+	</select>
+	
+	<select id="getOD" resultType="cpVO">
+		select cart.pnum as pnum, cart.pcount as pcount, (product.pprice*cart.pcount) as odprice from cart join product on(product.pnum=cart.pnum) where mnum=#{mnum}
+	</select>
+	
+	<insert id="addDoder">
+		 INSERT INTO order_detail values (odnum_seq.nextval, #{mnum}, #{vo.pcount}, #{onum}, #{vo.pnum}, #{vo.odprice}) 
+	</insert>
+	<update id="addOder">
+		update oder set otype=#{otype}, odate=sysdate where onum=#{onum}
+	</update>
+	
+	<delete id="removeAllCart">
+		delete from cart where mnum=#{mnum}
+	</delete>
+
+	<delete id="removeCoupon">
+		delete from coupon where cpnum=#{cnum}
+	</delete>
+	
+	<delete id="deleteOrd">
+		delete from oder where onum=#{onum}
+	</delete>	
+	
+	<update id="updateMem">
+		update member set mtotal=mtotal+#{sum} where mnum=#{mnum}
+	</update>
+	<update id="addOder2">
+		update oder set otype=#{otype}, odate=sysdate, is_sub=#{sid} where onum=#{onum}
+	</update>
+	<insert id="addSub">
+		insert into subscription values(#{tid}, #{mnum}, #{end}, #{vo.pnum}, #{vo.pcount}) 
+	</insert>
+	
+	
+	<!-- 
+	
+	public int getPrice(Long subpnum);
+
+	public SubVO getSub(String sid);
+
+	public MemberCVO getOderWithMnum(Long submnum);
+	
+	 -->
+	 
+	 <select id="getPrice" resultType="int">
+	 	select pprice from product where pnum=#{subpnum}
+	 </select>
+	 
+	 <select id="getSub" resultType="com.shop.domain.SubVO">
+	 	select * from subscription where subnum=#{sid}
+	 </select>
+	 
+	 <select id="getOderWithMnum" resultType="mcVO">
+	 	select mnum, recname as mname, rectel as mtel, daddr as maddr, dpnum as mpnum from oder where mnum =#{submnum} order by odate 
+	 </select>
+	 <delete id="removeSub">
+	 	delete from subscription where subnum=#{sid}
+	 </delete>
+</mapper>

@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shop.mapper.ShopMapper">
+	
+	<sql id="criteria">
+		where pname like '%'||#{keyword}||'%'
+	</sql>
+	
+	<select id="getListWithPaging" resultType="shopVO">
+		<![CDATA[
+			select pnum, pname, pprice, pstock, prdate, phearts, pstar, pdiet, pnutr1, pnutr2, pnutr3, ppdate, pexdate, is_sale, status, thumb, detail from
+				(select rownum r, pnum, pname, pprice, pstock, prdate, phearts, pstar, pdiet, pnutr1, pnutr2, pnutr3, ppdate, pexdate, is_sale, status, thumb, detail from
+					(select /*+ INDEX_DESC(product sys_c009831)*/
+	        		pnum, pname, pprice, pstock, prdate, phearts, pstar, pdiet, pnutr1, pnutr2, pnutr3, ppdate, pexdate, is_sale, status, thumb, detail
+	        		 from product
+	    ]]>
+    	
+    	<include refid="criteria"></include>
+    	
+	    <![CDATA[ 
+	        		 ) 
+    			where rownum <= (#{pageNum} * #{listQty} )) 
+			where r > (#{pageNum} - 1) * #{listQty}
+		]]>
+	</select>
+	 
+	
+	<!-- 전체 글의 개수 가져오기 : 전체 일때랑 검색했을때 두방법 모두 사용  -->
+	<select id="getTotalCount" resultType="int">
+		select count(*) from product
+		<include refid="criteria"></include>
+	</select>
+		
+	<!-- 상품 한개 가져오기  -->
+	<select id="read" resultType="shopVO">
+		select * from product where pnum=#{pnum}	
+	</select>
+
+	<select id="getSoldCount" resultType="int">
+		select NVL(sum(pcount),0) from order_detail where pnum=#{pnum}
+	</select>
+	
+	<select id="getReviewList" resultType="reviewVO2">
+		select member.mid as mid, preview.rtitle as rtitle, preview.rcnt as rcnt, pnum, member.mnum, preview.rdate as rdate, 
+preview.rstar as rstar, preview.iname
+from preview, member where preview.mnum = member.mnum and pnum=#{pnum}
+	</select>
+	
+	<select id="getQnaList" resultType="qnaVO2">
+		select m.mid,qnum, qtitle, qcnt, qmnum, qpnum, rdate, is_replyed  
+	from qna q, member m 
+	where q.qmnum = m.mnum and qpnum = #{pnum}
+	</select>
+
+	<select id="getReviewCount" resultType="int">
+		select count(*) from preview where pnum=#{pnum}
+	</select>
+	
+	<select id="getQnaCount" resultType="int">
+		select count(*) from qna where qpnum=#{pnum}
+	</select>
+	
+	<sql id="criteria2">
+		<trim prefix="where" prefixOverrides="and">
+			<if test="keyword != ''.toString()">pname like '%'||#{keyword}||'%'</if> 
+			<if test="cate!=null">
+			<if test="cate !=''.toString()">
+			<if test="cate != 'all'.toString()">and pdiet=#{cate}</if></if></if>
+			<if test="nutr!=null">
+				<if test="nutr !='all'.toString()">
+					and (pnutr1=#{nutr} or pnutr2=#{nutr} or pnutr3=#{nutr})
+				</if>
+			</if>
+		</trim>
+	</sql>
+	
+	<select id="getCateListWithPaging" resultType="shopVO">
+		<![CDATA[
+			select pnum, pname, pprice, pstock, prdate, phearts, pstar, pdiet, pnutr1, pnutr2, pnutr3, ppdate, pexdate, is_sale, status, thumb, detail from
+				(select rownum r, pnum, pname, pprice, pstock, prdate, phearts, pstar, pdiet, pnutr1, pnutr2, pnutr3, ppdate, pexdate, is_sale, status, thumb, detail from
+					(select pnum, pname, pprice, pstock, prdate, phearts, pstar, pdiet, pnutr1, pnutr2, pnutr3, ppdate, pexdate, is_sale, status, thumb, detail
+	        		 from product
+	    ]]>
+    	
+    	
+    	<include refid="criteria2"></include>
+    	<if test="ord == '0'.toString()"> order by pnum</if>
+	    <if test="ord == '1'.toString()"> order by pprice desc</if>
+    	<if test="ord == '2'.toString()"> order by pprice </if>
+    	<if test="ord=='3'.toString()"> order by pstar desc</if>
+	    <![CDATA[ 
+	        		 ) 
+    			where rownum <= (#{pageNum} * #{listQty} )) 
+			where r > (#{pageNum} - 1) * #{listQty}
+		]]>
+	</select>
+	
+		<!-- 전체 글의 개수 가져오기 : 전체 일때랑 검색했을때 두방법 모두 사용  -->
+	<select id="getCateTotalCount" resultType="int">
+		select count(*) from product 
+		<include refid="criteria2"></include>
+	</select>
+	
+	<select id="findMnum" resultType="Long">
+		select mnum from member where mid=#{mid}
+	</select>
+	
+	<select id="findHeart" resultType="int">
+		select count(*) from phearts_count where pnum = #{pnum} and mnum=#{mnum}
+	</select>
+	
+	<select id="findCart" resultType="int">
+		select count(*) from cart where pnum = #{pnum} and mnum=#{mnum}
+	</select>
+	
+	<insert id="addHeart">
+		insert into phearts_count values(#{pnum}, #{mnum})
+	</insert>
+	
+	<insert id="addCart">
+		insert into cart values(#{mnum}, #{pnum}, 1)
+	</insert>
+	
+	<update id="updateCart">
+		update cart set pcount=#{quantity} where pnum=#{pnum} and mnum=#{mnum} 
+	</update>
+	
+	<delete id="removeHeart">
+		delete from phearts_count where pnum = #{pnum} and mnum=#{mnum}
+	</delete>
+	
+	<delete id="removeCart">
+		delete from cart where pnum = #{pnum} and mnum=#{mnum}
+	</delete>
+	
+	<update id="updateHeart">
+		update product set phearts = #{heart} where pnum=#{pnum}
+	</update>
+	
+	<select id="getPHeart" resultType="int">
+		select count(*) from phearts_count where pnum=#{pnum}
+	</select>
+	<select id="getCart" resultType="cartVO">
+		select product.pnum, cart.mnum,cart.pnum,cart.pcount,product.pname,product.pprice,product.pstock,
+		product.pdiet, product.pnutr1,product.pnutr2,product.pnutr3, product.pexdate, product.is_sale, product.status, product.thumb
+		from cart join product on (product.pnum=cart.pnum) where mnum=#{mnum}
+	</select>
+	<select id="getCartCount" resultType="int">
+		select count(*) from cart where mnum=#{mnum}
+	</select>
+	<select id="getMem" resultType="mcVO">
+		select m.mnum, m.mname,m.mtel, m.maddr,m.mpnum,membership.per from member m join membership on(m.mtier=membership.tier) where mnum=#{mnum}
+	</select>
+	
+	<select id="getCoupons" resultType="couponVO">
+		select cpnum, cpname, cpwon from coupon where mnum=#{mnum}
+	</select>
+
+	<select id="getAddrs" resultType="addrVO">
+		select rep, alias, addr, pnum, reptel from address where mnum=#{mnum}
+	</select>
+	
+	<select id="getAddr" resultType="addrVO">
+		select rep, alias, addr, pnum, reptel from address where mnum=#{mnum} and alias=#{alias} 
+	</select>
+	
+	<select id="getCoupon" resultType="couponVO">
+		select * from coupon where cpnum=#{cpnum}
+	</select>
+	
+	<select id="getSumCart" resultType="int">
+		select NVL(sum(cart.pcount * product.pprice),0) from cart join product on (product.pnum=cart.pnum) where mnum=#{mnum}
+	</select>
+	
+	<select id="getHeartList" resultType="Long">
+		select pnum from phearts_count where mnum=#{mnum}
+	</select>
+	
+	<select id="isSub" resultType="int">
+		select count(*) from subscription where subpnum=#{pnum} and submnum=#{mnum}
+	</select>
+	
+	<select id="findSale" resultType="ProductVO">
+		select rownum, pnum, pname, pexdate from 
+		(select * from product where is_sale = 'Y' order by pexdate asc)
+		where rownum = 1 order by rownum
+	</select>
+	
+</mapper>

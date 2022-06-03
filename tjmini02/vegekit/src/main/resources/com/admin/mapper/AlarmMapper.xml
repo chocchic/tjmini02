@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="com.admin.mapper.AlarmMapper">
+ 	
+ 	<!-- 개인 알림 등록 -->
+ 	<insert id="oneRegister">
+		INSERT INTO
+		    alarm(anum, mnum, atype, acnt, ardate, is_read)
+		VALUES
+		    (alarm_seq.nextval,
+			    (select 
+			    	mnum 
+			    from 
+			    	member
+			    where 
+			    	mid = #{mid})
+		    ,#{atype}, #{acnt}, sysdate, #{is_read})
+ 	</insert>
+ 	
+ 	<select id="checkId" resultType="int">
+ 		select COUNT(*) from member where mid = #{mid}
+ 	</select>
+ 	
+ 	
+ 	
+ 	
+ 	<!-- 다중 알림 -->
+ 	<insert id="multiRegister">
+ 		INSERT INTO alarm
+				SELECT alarm_seq.NEXTVAL, mnum, atype, acnt, ardate, is_read
+				FROM
+				(
+		<trim suffixOverrides="UNION ALL">
+			<foreach separator ="UNION ALL" collection="list" item="list">
+			    SELECT  #{list.mnum} mnum, #{list.atype} atype, #{list.acnt} acnt, sysdate ardate, #{list.is_read} is_read FROM dual
+		    </foreach>
+		    	)
+	    </trim>
+ 	</insert>
+ 	
+ 	
+ 
+ 	<sql id="criteria">
+ 		<trim prefix="where" prefixOverrides="or">
+           <foreach item="type" collection="typeArr">
+              <trim prefix="or">
+                <choose>
+                   <when test="type == 'N'.toString()">
+                      anum like '%'||#{keyword}||'%'
+                   </when>
+                   <when test="type == 'C'.toString()">
+                      acnt like '%'||#{keyword}||'%'
+                   </when>   
+                   <when test="type == 'T'.toString()">
+                      atype like '%'||#{keyword}||'%'
+                   </when>    
+                   <when test="type == 'R'.toString()">
+                      is_read like '%'||#{keyword}||'%'
+                   </when>                     
+                </choose>               
+              </trim>
+           </foreach>
+        </trim>
+ 	</sql>
+ 
+ 
+ 	<select id="getListWithPaging" resultType="aAlarmVO">
+      <![CDATA[
+         SELECT 
+         	alarm.anum, alarm.mnum, alarm.atype, alarm.acnt, alarm.ardate, alarm.is_read, mem.mid
+         FROM
+             (SELECT 
+             	rownum r, anum, mnum, atype, acnt, ardate, is_read
+             FROM 
+                (SELECT
+                	anum, mnum, atype, acnt, ardate, is_read 
+                FROM 
+                	alarm
+                
+       ]]>
+       
+                <include refid="criteria"></include>
+       
+       <![CDATA[
+                ORDER BY ardate DESC) 
+             WHERE 
+             	rownum <= (#{pageNum} * #{listQty} ) ORDER BY ardate DESC) alarm
+             left outer join member mem
+             on alarm.mnum = mem.mnum
+         WHERE 
+         	r > (#{pageNum} - 1) * #{listQty}
+         AND
+         	mem.mnum = alarm.mnum
+         ORDER BY 
+         	alarm.ardate DESC
+      ]]>
+   </select>
+ 
+ 	<!-- 전체 글의 개수 가져오기 : 전체 일때랑 검색했을때 두방법 모두 사용 -->
+ 	<select id="getTotalCount" resultType="int">
+ 		select 
+ 			count(*) 
+ 		from 
+ 			alarm
+ 		<trim prefix="where" prefixOverrides="or">
+           <foreach item="type" collection="typeArr">
+              <trim prefix="or">
+                <choose>
+                   <when test="type == 'N'.toString()">
+                      anum like '%'||#{keyword}||'%'
+                   </when>
+                   <when test="type == 'C'.toString()">
+                      acnt like '%'||#{keyword}||'%'
+                   </when>   
+                   <when test="type == 'T'.toString()">
+                      atype like '%'||#{keyword}||'%'
+                   </when>    
+                   <when test="type == 'R'.toString()">
+                      is_read like '%'||#{keyword}||'%'
+                   </when>                     
+                </choose>               
+              </trim>
+           </foreach>
+        </trim>
+ 	</select>
+ 
+ 
+ 	<!-- 글 한개 가져오기 -->
+ 	<select id="read" resultType="aAlarmVO">
+ 		select 
+ 			alm.anum, alm.mnum, alm.atype, alm.acnt, alm.ardate, alm.is_read, mem.mid
+		from 
+			alarm alm left outer join member mem on alm.mnum = mem.mnum 
+		where 
+			mem.mnum = #{mnum} and alm.anum = #{anum}
+ 	</select>
+ 
+ 	<!-- 글 삭제 -->
+ 	<delete id="delete">
+ 		DELETE FROM 
+ 			alarm 
+ 		WHERE 
+ 			anum = #{anum}
+ 	</delete>
+ 
+ 
+ 	<!-- 글 수정 -->
+ 	<update id="update">
+ 		UPDATE
+ 			alarm
+ 		SET
+ 			atype =#{atype}, acnt= #{acnt}
+ 		WHERE
+ 			anum = #{anum}
+ 	</update>
+ 
+ 
+ 
+ 	<select id="findMnum" resultType="hashmap" parameterType="int">
+ 		SELECT 
+	    	mnum 
+	    FROM 
+	    	member
+	    <if test='mtier != 4'>
+	    	WHERE 
+	    		mtier = #{mtier}
+	    </if>
+	    
+ 	</select>
+ 
+ 
+ </mapper>

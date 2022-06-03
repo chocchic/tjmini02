@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="com.admin.mapper.SubscriptionMapper">
+ 
+ 	
+ 	<select id="getList" resultType="aSubVO">
+ 		SELECT 
+ 			*
+ 		FROM
+ 			subscription
+ 	</select>
+ 
+ 
+ 
+ 	<sql id="criteria">
+ 		<trim prefix="where" prefixOverrides="or">
+           <foreach item="type" collection="typeArr">
+              <trim prefix="or">
+                <choose>
+                   <when test="type == 'N'.toString()">
+                      s.subnum like '%'||#{keyword}||'%'
+                   </when>
+                   <when test="type == 'M'.toString()">
+                      m.mid like '%'||#{keyword}||'%'
+                   </when>
+                   <when test="type == 'P'.toString()">
+                      s.subpnum like '%'||#{keyword}||'%'
+                   </when>                   
+                </choose>               
+              </trim>
+           </foreach>
+        </trim>
+ 	</sql>
+ 
+ 	<!-- 전체 구독글 가져오기 -->
+ 	<select id="getListWithPaging" resultType="aSubVO">
+      <![CDATA[
+         SELECT 
+         	s.subnum, s.submnum, s.subend, s.subpnum, s.quantity, m.mid
+         FROM
+             (SELECT 
+             	rownum r, s.subnum, s.submnum, s.subend, s.subpnum, s.quantity, m.mid
+             FROM 
+                (SELECT /*+ INDEX_DESC(oder pk_oder)*/ 
+                	s.subnum, s.submnum, s.subend, s.subpnum, s.quantity, m.mid
+                FROM 
+                	subscription s
+ 					left join member m ON s.submnum = m.mnum
+       ]]>
+       
+       <include refid="criteria"></include>
+       
+       <![CDATA[
+                )  s
+ 					join member m ON s.submnum = m.mnum
+             WHERE
+             	rownum <= (#{pageNum} * #{listQty} )) s
+ 				left join member m ON s.submnum = m.mnum
+         WHERE 
+         	r > (#{pageNum} - 1) * #{listQty}
+       ]]>
+   </select>
+ 
+ 	<!-- 전체 구독글의 개수 가져오기 -->
+ 	<select id="getTotalCount" resultType="int">
+ 		SELECT
+ 			count(*) 
+ 		FROM 
+ 			subscription s
+ 			join member m ON s.submnum = m.mnum
+ 		<trim prefix="WHERE" prefixOverrides="or">
+           <foreach item="type" collection="typeArr">
+              <trim prefix="or">
+                <choose>
+                   <when test="type == 'N'.toString()">
+                      s.subnum like '%'||#{keyword}||'%'
+                   </when>
+                   <when test="type == 'M'.toString()">
+                      m.mid like '%'||#{keyword}||'%'
+                   </when>   
+                   <when test="type == 'P'.toString()">
+                      s.subpnum like '%'||#{keyword}||'%'
+                   </when>                  
+                </choose>               
+              </trim>
+           </foreach>
+        </trim>
+        
+        
+ 	</select>
+ 
+ 
+ 	<!-- 구독 한개 가져오기 -->
+ 	<select id="read" resultType="aSubVO">
+ 		SELECT 
+		    s.subnum, s.submnum, s.subend, s.subpnum, s.quantity, m.mid
+		FROM 
+		    subscription s
+		    join member m on s.submnum = m.mnum
+		WHERE 
+		    s.subnum = #{subnum}
+ 	</select>
+
+ 	<!-- 주문 삭제 -->
+ 	<delete id="delete">
+ 		DELETE FROM 
+ 			oder 
+ 		WHERE 
+ 			onum = #{onum}
+ 	</delete>
+ 
+ 
+ 	<!-- 주문 수정 -->
+ 	<update id="update">
+ 		UPDATE
+ 			oder
+ 		SET
+ 			dpnum = #{dpnum}, daddr=#{daddr}, recname = #{recname}, rectel=#{rectel}, ofee=#{ofee}, cpwon=#{cpwon}
+ 			, classper = #{classper}, is_sub = #{is_sub}, otype=#{otype}, odate = #{odate}, odel_state = #{odel_state} 
+ 		WHERE
+ 			onum = #{onum}
+ 	</update>
+ 
+ 
+ 
+ </mapper>

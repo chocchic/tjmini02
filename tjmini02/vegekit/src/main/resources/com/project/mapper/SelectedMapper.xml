@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.project.mapper.SelectedMapper">
+
+<!-- 좋아요 순으로 가져오기  -->
+<select id="likeSelect" resultType="com.project.domain.ProductVO">
+	select rownum, pnum, pname, phearts, thumb, pprice, pnutr1,pnutr2,pnutr3 
+    from (select pnum, pname, phearts, thumb, pprice, pnutr1,pnutr2,pnutr3 
+    from product order by phearts desc)
+	<![CDATA[
+	where rownum < 7
+	]]>
+</select>
+
+<!-- 회원이 선택한 영양소 정보 가져오기  -->
+<select id="getMemRecomm" resultType="com.project.domain.MemberVO">
+	select mnutr1, mnutr2, mnutr3,mnum from member where mnum = #{mnum}
+</select>
+
+<!-- 영양 정보로 상품 정보 가져오기  -->
+<select id="getRecommProd" resultType="ProductVO">
+   select rownum, pnum, pname, pstar, thumb, pprice, pnutr1,pnutr2,pnutr3 from (
+      select pnum, pname, pstar, thumb, pprice, pnutr1,pnutr2,pnutr3 from product 
+      <trim prefix="where" prefixOverrides="and|or" >
+         <if test="mnutr1 != null">
+            pnutr1 is not null 
+         </if>
+         <if test="mnutr2 != null">
+            and pnutr2 is not null 
+         </if>
+         <if test="mnutr3 != null">
+            and pnutr3 is not null 
+         </if>
+      </trim>
+      order by pstar desc) 
+      <![CDATA[
+      where rownum < 7
+      ]]>
+</select>
+
+<!--별점 순으로 가져오기  -->
+<select id="starSelect" resultType="com.project.domain.ProductVO">
+	select rownum, pnum, pname, pstar, thumb, pprice, pnutr1,pnutr2,pnutr3  
+	from (select pnum, pname, pstar, thumb, pprice, pnutr1,pnutr2,pnutr3 
+	from product order by pstar desc)
+	<![CDATA[
+	where rownum < 7
+	]]>
+</select>
+
+
+
+
+
+
+
+</mapper>

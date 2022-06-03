@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="com.admin.mapper.CouponMapper">
+ 
+ 	
+ 	<select id="getList" resultType="aCouponVO">
+ 		SELECT 
+ 			*
+ 		FROM
+ 			coupon
+ 	</select>
+ 
+ 	<!-- 개인 쿠폰 발급 -->
+ 	<insert id="oneRegister">
+		INSERT INTO
+ 			coupon(cpnum, cpname, cpwon, mnum)
+ 		VALUES
+ 			(coupon_seq.nextval, #{cpname}, #{cpwon},
+ 				(SELECT 
+ 					mnum 
+ 				FROM 
+ 					member 
+ 				WHERE 
+ 					mid=#{mid})
+ 			)
+ 	</insert>
+ 	
+ 	<!-- 다중 쿠폰 발급 -->
+ 	<insert id="multiRegister">
+ 		INSERT INTO coupon
+				SELECT coupon_seq.NEXTVAL, cpname, cpwon, mnum
+				FROM
+				(
+				<trim suffixOverrides="UNION ALL">
+					<foreach separator ="UNION ALL" collection="list" item="list">
+				    	SELECT  #{list.cpname} cpname, #{list.cpwon} cpwon, #{list.mnum} mnum FROM dual
+			    	</foreach>
+			  	</trim>
+	    		)
+ 	</insert>
+ 	
+ 
+ 
+ 	<sql id="criteria">
+ 		<trim prefix="where" prefixOverrides="or">
+           <foreach item="type" collection="typeArr">
+              <trim prefix="or">
+                <choose>
+                   <when test="type == 'N'.toString()">
+                      cp.cpnum = #{keyword}
+                   </when>
+                   <when test="type == 'M'.toString()">
+                      cp.cpname like '%'||#{keyword}||'%'
+                   </when>   
+                   <when test="type == 'D'.toString()">
+                      cp.cpwon like '%'||#{keyword}||'%'
+                   </when>
+                   <when test="type == 'U'.toString()">
+                      mem.mid like '%'||#{keyword}||'%'
+                   </when>                     
+                </choose>               
+              </trim>
+           </foreach>
+        </trim>
+ 	</sql>
+ 
+ 	<!-- 전체 글 가져오기 -->
+ 	<select id="getListWithPaging" resultType="aCouponVO">
+      <![CDATA[
+         SELECT 
+         	cp.cpnum, cp.cpname, cp.cpwon, cp.mnum, mem.mid
+         FROM
+             (SELECT 
+             	rownum r, cpnum, cpname, cpwon, mnum
+             FROM 
+                (SELECT /*+ INDEX_DESC(coupon pk_coupon)*/ 
+                	cp.cpnum, cp.cpname, cp.cpwon, cp.mnum, mem.mid
+                FROM 
+                	coupon cp
+		           	left outer join member mem
+		            on cp.mnum = mem.mnum
+       ]]>
+       
+       <include refid="criteria"></include>
+       
+       <![CDATA[
+                ) 
+             WHERE 
+             	rownum <= (#{pageNum} * #{listQty} )) cp
+           	left outer join member mem
+            on cp.mnum = mem.mnum
+         WHERE 
+         	r > (#{pageNum} - 1) * #{listQty} 
+       ]]> 
+     
+   </select>
+ 
+ 	<!-- 전체 글의 개수 가져오기 -->
+ 	<select id="getTotalCount" resultType="int">
+ 		SELECT
+ 			count(*) 
+ 		FROM 
+ 			coupon
+ 		<trim prefix="WHERE" prefixOverrides="or">
+           <foreach item="type" collection="typeArr">
+              <trim prefix="or">
+                <choose>
+                   <when test="type == 'N'.toString()">
+                      cpnum=#{keyword}
+                   </when>
+                   <when test="type == 'M'.toString()">
+                      cpname like '%'||#{keyword}||'%'
+                   </when>   
+                   <when test="type == 'D'.toString()">
+                      cpwon like '%'||#{keyword}||'%'
+                   </when>
+                   <when test="type == 'U'.toString()">
+                      mnum like '%'||#{keyword}||'%'
+                   </when>                     
+                </choose>               
+              </trim>
+           </foreach>
+        </trim>
+        
+        
+ 	</select>
+ 
+ 
+ 	<!-- 쿠폰 한개 가져오기 -->
+ 	<select id="read" resultType="aCouponVO">
+ 		SELECT 
+ 			cp.cpnum, cp.cpname, cp.cpwon, cp.mnum, mem.mid
+ 		FROM 
+ 			coupon cp
+ 			left outer join member mem
+            on cp.mnum = mem.mnum
+        WHERE 
+         	cp.cpnum= #{cpnum}
+ 	</select>
+
+ 	<!-- 쿠폰 삭제 -->
+ 	<delete id="delete">
+ 		DELETE FROM 
+ 			coupon 
+ 		WHERE 
+ 			cpnum = #{cpnum}
+ 	</delete>
+ 
+ 
+ 	<!-- 쿠폰 수정 -->
+ 	<update id="update">
+ 		UPDATE
+ 			coupon
+ 		SET
+ 			cpname= #{cpname}, cpwon= #{cpwon}
+ 		WHERE
+ 			cpnum = #{cpnum}
+ 	</update>
+ 
+ 
+	 <select id="findMnum" resultType="hashmap" parameterType="int">
+	 		SELECT 
+		    	mnum 
+		    FROM 
+		    	member
+		    <if test='mtier != 4'>
+		    	WHERE 
+		    		mtier = #{mtier}
+		    </if>
+ 	</select>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+ </mapper>

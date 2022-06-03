@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	
+	<!-- SQL문을 처리시 NULL값이 올때 통합처리 세팅해놓은것.
+		통합처리를 하지 않고 개별 데이터에 하나씩 처리하기 위해서는 
+		#{id, jdbcType=VARCHAR} #{age, jdbcType=INTEGER} ... 이런식으로 매번 작성해줘야함. 
+		vo/dto : int age => 0 
+				Integer age => (null) 
+	 -->
+	<settings>
+		<setting name="jdbcTypeForNull" value="NULL"/>
+	</settings>
+
+	<!-- mapper.xml에서 resultType에 작성하는 vo같은 클래스 이름이 길다.
+		별칭달아서 짧게 써보자 
+	 -->
+	<typeAliases>
+			
+		<!-- 중현님 -->
+	  <typeAlias type="com.admin.domain.ProductVO" alias="aProductVO" />
+	   <typeAlias type="com.admin.domain.MMemberVO" alias="aMemberVO" />
+	   <typeAlias type="com.admin.domain.AlarmVO" alias="aAlarmVO" />
+	   <typeAlias type="com.admin.domain.CouponVO" alias="aCouponVO" />
+	   <typeAlias type="com.admin.domain.OrderVO" alias="aOrderVO" />  
+	   <typeAlias type="com.admin.domain.SubscriptionVO" alias="aSubVO" />  
+	
+	   
+      <!-- 지은님   -->
+     <typeAlias type="com.project.domain.ReviewVO" alias="ReviewVO" />
+	<typeAlias type="com.project.domain.ProductVO" alias="ProductVO" />
+	<typeAlias type="com.project.domain.MemberVO" alias="MemberVO" />
+	<typeAlias type="com.qna.domain.QnaVO" alias="QnaVO" />
+    
+      
+      <!-- 민아님       -->
+      <typeAlias type="com.shop.domain.ShopVO" alias="shopVO"/>
+      <typeAlias type="com.shop.domain.ReviewVO" alias="reviewVO2"/>
+      <typeAlias type="com.shop.domain.QnaVO" alias="qnaVO2"/>
+      <typeAlias type="com.shop.domain.CartVO" alias="cartVO"/>
+      <typeAlias type="com.shop.domain.MemberCVO" alias="mcVO"/>
+      <typeAlias type="com.shop.domain.CouponVO" alias="couponVO"/>
+      <typeAlias type="com.shop.domain.AddressVO" alias="addrVO"/>
+      <typeAlias type="com.shop.domain.CartnProdVO" alias="cpVO"/> 
+
+      
+	</typeAliases>
+
+	
+
+
+</configuration>

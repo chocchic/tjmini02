@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shop.mapper.SchedulerMapper">
+<!-- public List<Long> getneedSale();
+	
+	public void updateSale(Long pnum);
+
+	public List<String> getneedSub(); -->
+	<select id="getneedSale" resultType = "Long">
+		<![CDATA[
+		select pnum from product where pexdate <= TO_CHAR(sysdate+1, 'YYYY-MM-DD') and pexdate > TO_CHAR(sysdate, 'YYYY-MM-DD')
+		]]>
+	</select>
+
+	<update id="updateSale">
+		update product set is_sale='Y' where pnum = #{pnum}
+	</update>
+	
+	<select id="getneedSub" resultType="String">
+		select subnum from subscription where subend = TO_CHAR(sysdate, 'YYYY-MM-DD')
+	</select>
+</mapper>

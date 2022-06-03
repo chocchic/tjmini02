@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.member.mapper.MemberMapper">
+
+	<insert id="addMember">
+		<selectKey keyProperty="mnum" resultType="int"
+			order="BEFORE">
+			select member_seq.nextval FROM DUAL
+		</selectKey>
+		insert into member(mnum, mid, mpw, mname, mtel, maddr, mpnum)
+		values(#{mnum}, #{mid}, #{mpw}, #{mname}, #{mtel}, #{maddr}, #{mpnum})
+	</insert>
+	<insert id="addAuth">
+		insert into member_auth values(#{mnum}, #{auth})
+	</insert>
+
+	<!-- 아이디 중복검사 -->
+	<select id="idCheck" resultType="int">
+		select count(*) from member where mid = #{mid}
+	</select>
+
+	<!-- MemberVO안에 List<AuthVO> authList때문에 resultMap 정의함 : 바인딩 목적이므로 nn이든 
+		n이든 모든 변수 포함 -->
+	<resultMap type="com.member.domain.MemberVO" id="memberMap">
+		<id property="mnum" column="mnum" />		<!-- pk가 들어가야 함 -->
+		<result property="mnum" column="mnum" />
+		<result property="mid" column="mid" />
+		<result property="mpw" column="mpw" />
+		<result property="mname" column="mname" />
+		<result property="mtel" column="mtel" />
+		<result property="maddr" column="maddr" />
+		<result property="mpnum" column="mpnum" />
+		<result property="mnutr1" column="mnutr1" />
+		<result property="mnutr2" column="mnutr2" />
+		<result property="mnutr3" column="mnutr3" />
+		<result property="mdiet" column="mdiet" />
+		<result property="mtier" column="mtier" />
+		<result property="mrdate" column="mrdate" />
+		<result property="mtotal" column="mtotal" />
+		<result property="is_sale" column="is_sale" />
+		<result property="is_alive" column="is_alive" />
+		<collection property="authList" resultMap="authMap"></collection>
+	</resultMap>
+
+	<resultMap type="com.member.domain.AuthVO" id="authMap">
+		<result property="mnum" column="mnum" />
+		<result property="auth" column="auth" />
+	</resultMap>
+
+	<select id="getMember" resultMap="memberMap"><!-- nn이든 n이든 모든 값 포함 -->
+		select mem.mnum, mid, mpw, mname, mtel, maddr, mpnum, mnutr1, mnutr2,
+		mnutr3, mdiet, mtier, mrdate, mtotal, is_sale, is_alive, auth
+		from member mem left outer join member_auth auth on mem.mnum = auth.mnum
+		where mem.mid = #{mid}
+	</select>
+
+
+	<update id="updateMember">
+		update member set mtel=#{mtel}, maddr=#{maddr},
+		mpnum=#{mpnum}, mnutr1=#{mnutr1}, mnutr2=#{mnutr2}, mnutr3=#{mnutr3},
+		mdiet=#{mdiet}, is_sale=#{is_sale}
+		where mid=#{mid}
+	</update>
+
+	<delete id="deleteMember">
+		delete from member where mnum=#{mnum}
+	</delete>
+
+	<delete id="deleteAddr">
+		delete from address where mnum=#{mnum}
+	</delete>
+
+	<delete id="deleteAuth">
+		delete from member_auth where mnum=#{mnum}
+	</delete>
+
+	<!-- mid로 mnum 가져오기 -->
+	<select id="findMnum" resultType="int">
+		select mnum from member where
+		mid=#{mid}
+	</select>
+
+
+	<!-- id찾기 -->
+	<select id="findByNameandTel" resultType="String">
+		select mid from member
+		where mname=#{mname} and mtel=#{mtel}
+	</select>
+
+
+	<!-- 비번 재설정 -->
+	<select id="findPwChk" resultType="int">
+		select count(*) from member where mid=#{mid} and mtel=#{mtel}
+	</select>
+
+	<update id="resetPw">
+		update member set mpw=#{mpw} where mid=#{mid}
+	</update>
+
+	<!-- 결제내역 조회 : 상품, 주문, 주문상세 테이블 조인. 뷰에서 다중행으로 보여줘야 하니까 list로 뿌려줘야 함. 여기서 resulttype은 vo -->
+	<select id="viewRecd" resultType="com.member.domain.RecdVO">
+		select mem.mid, mem.mnum, prod.thumb, pname, pdiet, pprice, prod.pnum, odetail.pcount, ode.onum, ode.odate, ode.odel_state, ode.ototal, odetail.odnum
+		from member mem, product prod, order_detail odetail, oder ode
+		where
+		mem.mnum=odetail.mnum and prod.pnum=odetail.pnum and ode.onum=odetail.onum and mid=#{mid}
+	</select>
+
+	<!-- 결제내역에서 주문 상태 조회(0, 1, 2) -->
+	<select id="viewState" resultType="int">
+		select odel_state from oder where mnum=#{mnum}
+	</select>
+	
+	<!-- 주소 디폴트값 -->
+	<select id="viewAddrDefault" resultType="com.member.domain.MemberVO">
+	select mname, maddr, mpnum, mtel from member where mnum=#{mnum}
+	</select>
+	
+	<!-- 내 주소록  리스트로 뿌려줄 것 -->
+	<select id="viewAddr" resultType="com.member.domain.MaddressVO">
+		select rep, alias, addr, pnum, reptel from address where mnum=#{mnum}
+	</select>
+	
+	<!-- 직접 입력한 주소록을 주소 테이블에 추가 -->
+	<insert id="insertAddr">
+		insert into address(mnum, rep, alias, addr, pnum, reptel) values(#{mnum}, #{rep}, #{alias}, #{addr}, #{pnum}, #{reptel})
+	</insert>
+	
+	<!-- 배송상태 변경 -->
+	<update id="updateState">
+		update oder set odel_state=2 where onum=#{onum}
+	</update>
+	
+	<!-- 내 구독상품 조회 -->
+	<select id="viewSub" resultType="com.member.domain.SubProdVO">
+		select p.pname, p.pdiet, s.subend, s.subnum
+		from subscription s, product p
+		where p.pnum=s.subpnum and s.submnum=#{submnum}
+	</select>
+
+<!-- 	
+	<select id="getSid" resultType="String">
+		select subnum from subscription where submnum=#{mnum} 
+	</select>
+	
+	<select id="getOderInfo" resultType="com.member.domain.SubProdVO">
+		select odate, daddr, is_sub as subnum from oder where is_sub=#{sid}
+	</select>
+-->
+	
+	<!-- ***********************중현소스시작*********************** -->
+	<select id="getAlarmList" resultType="com.admin.domain.AlarmVO">
+		select 
+			a.anum, a.mnum, a.atype, a.acnt, a.ardate, a.is_read, m.mid
+		from 
+			alarm a
+			JOIN member m ON a.mnum= m.mnum
+		where 
+			m.mnum = #{mnum}
+	</select>
+	<select id="getAlarmListWithPaging" resultType="com.admin.domain.AlarmVO">
+	<![CDATA[
+         SELECT 
+         	alarm.anum, alarm.mnum, alarm.atype, alarm.acnt, alarm.ardate, alarm.is_read, mem.mid
+         FROM
+             (SELECT 
+             	rownum r, anum, mnum, atype, acnt, ardate, is_read
+             FROM 
+                (SELECT
+                	anum, mnum, atype, acnt, ardate, is_read 
+                FROM 
+                	alarm
+                
+       ]]>
+                <include refid="criteria"></include>
+       <![CDATA[
+                ORDER BY ardate DESC) 
+             WHERE 
+             	rownum <= (#{pageNum} * #{listQty} ) ORDER BY ardate DESC) alarm
+             left outer join member mem
+             on alarm.mnum = mem.mnum
+         WHERE 
+         	r > (#{pageNum} - 1) * #{listQty}
+         AND
+         	mem.mnum = #{mnum}
+         ORDER BY 
+         	alarm.ardate DESC
+      ]]>
+	</select>
+	<sql id="criteria">
+ 		<trim prefix="where" prefixOverrides="or">
+           <foreach item="type" collection="typeArr">
+              <trim prefix="or">
+                <choose>
+                   <when test="type == 'N'.toString()">
+                      anum like '%'||#{keyword}||'%'
+                   </when>
+                   <when test="type == 'C'.toString()">
+                      acnt like '%'||#{keyword}||'%'
+                   </when>   
+                   <when test="type == 'T'.toString()">
+                      atype like '%'||#{keyword}||'%'
+                   </when>    
+                   <when test="type == 'R'.toString()">
+                      is_read like '%'||#{keyword}||'%'
+                   </when>                     
+                </choose>               
+              </trim>
+           </foreach>
+        </trim>
+ 	</sql>
+	<!-- 전체 글의 개수 가져오기 : 전체 일때랑 검색했을때 두방법 모두 사용 -->
+ 	<select id="getTotalCount" resultType="int">
+ 		select
+ 			count(*)
+ 		from
+ 			alarm a
+ 			JOIN member m ON a.mnum = m.mnum 
+ 			
+        WHERE m.mnum = #{mnum}
+ 		<trim prefix="AND" prefixOverrides="or">
+           <foreach item="type" collection="typeArr">
+              <trim prefix="or">
+                <choose>
+                   <when test="type == 'N'.toString()">
+                      anum like '%'||#{keyword}||'%'
+                   </when>
+                   <when test="type == 'T'.toString()">
+                      atype like '%'||#{keyword}||'%'
+                   </when>   
+                   <when test="type == 'C'.toString()">
+                      acnt like '%'||#{keyword}||'%'
+                   </when>                     
+                </choose>               
+              </trim>
+           </foreach>
+        </trim>
+ 	</select>
+	<select id="getOneAlarm" resultType="com.admin.domain.AlarmVO">
+		SELECT * FROM alarm 
+		where mnum = #{mnum} and anum = #{anum}
+	</select>
+	<update id="updateIsRead">
+		update 
+			alarm 
+		set 
+			is_read = 'Y' 
+		where  
+			anum = #{anum}
+	</update>
+	<!-- ***********************중현소스종료*********************** -->
+	<!-- 내 구독상품 취소 -->
+	
+	
+	
+	
+
+</mapper>

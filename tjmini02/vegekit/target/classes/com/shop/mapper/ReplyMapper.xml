@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shop.mapper.ReplyMapper">
+
+	<select id="getReviewListWithPaging" resultType="reviewVO2">
+		select member.mid, preview.* from preview join member on preview.mnum = member.mnum where pnum = #{pnum} order by pnum desc
+	</select>
+	
+	<select id="getQnaListWithPaging" resultType="qnaVO2">
+		select member.mid, qna.* from qna join member on qna.qmnum = member.mnum where qpnum = #{pnum} order by qnum desc 
+	</select>
+
+	<select id="rCount" resultType="int">
+		select count(*) from preview where pnum=#{pnum}
+	</select>
+
+	<select id="qCount" resultType="int">
+		select count(*) from qna where qpnum=#{pnum}
+	</select>
+
+	<delete id="deleteReview">
+		delete from preview where pnum =#{pnum}
+	</delete>
+	<delete id="deleteQna">
+		delete from qna where pqnum=#{pnum}
+	</delete>
+	
+</mapper>

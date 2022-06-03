@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="com.admin.mapper.OrderMapper">
+ 
+ 	
+ 	<select id="getList" resultType="aOrderVO">
+ 		SELECT 
+ 			*
+ 		FROM
+ 			oder
+ 	</select>
+ 
+ 
+ 
+ 	<sql id="criteria">
+ 		<trim prefix="where" prefixOverrides="or">
+           <foreach item="type" collection="typeArr">
+              <trim prefix="or">
+                <choose>
+                   <when test="type == 'O'.toString()">
+                      o.onum = #{keyword}
+                   </when>
+                   <when test="type == 'M'.toString()">
+                      m.mid  like '%'||#{keyword}||'%'
+                   </when>
+                   <when test="type == 'P'.toString()">
+                      o.recname like '%'||#{keyword}||'%'
+                   </when>
+                   <when test="type == 'S'.toString()">
+                      o.odel_state like '%'||#{keyword}||'%'
+                   </when>                     
+                </choose>               
+              </trim>
+           </foreach>
+        </trim>
+ 	</sql>
+ 
+ 	<!-- 전체 글 가져오기 -->
+ 	<select id="getListWithPaging" resultType="aOrderVO">
+      <![CDATA[
+         SELECT 
+         	o.onum, o.mnum, o.dpnum, o.daddr, o.recname, o.rectel, o.ofee, o.ototal, o.cpwon, o.classper, o.is_sub, o.otype, o.odate, o.odel_state, m.mid
+         FROM
+             (SELECT 
+             	rownum r, o.onum, o.mnum, o.dpnum, o.daddr, o.recname, o.rectel, o.ofee, o.ototal, o.cpwon, o.classper, o.is_sub, o.otype, o.odate, o.odel_state
+             FROM 
+                (SELECT /*+ INDEX_DESC(oder pk_oder)*/ 
+                	o.onum, o.mnum, o.dpnum, o.daddr, o.recname, o.rectel, o.ofee, o.ototal, o.cpwon, o.classper, o.is_sub, o.otype, o.odate, o.odel_state
+                FROM 
+                	oder o
+                	LEFT JOIN member m ON o.mnum = m.mnum
+       ]]>
+       <include refid="criteria"></include>
+       <![CDATA[
+                )  o 
+                LEFT JOIN member m ON o.mnum = m.mnum
+             WHERE
+             	rownum <= (#{pageNum} * #{listQty})
+             ORDER BY
+         		o.odate 
+             ) o
+         LEFT JOIN member m ON o.mnum = m.mnum
+         WHERE 
+         	r > (#{pageNum} - 1) * #{listQty}
+         ORDER BY
+         	o.odate DESC
+       ]]>
+   </select>
+   
+   
+      
+      
+      
+ 	<!-- 전체 글의 개수 가져오기 -->
+ 	<select id="getTotalCount" resultType="int">
+ 		SELECT
+ 			count(*) 
+ 		FROM 
+ 			oder o
+ 			JOIN member m ON o.mnum = m.mnum
+ 		<trim prefix="WHERE" prefixOverrides="or">
+           <foreach item="type" collection="typeArr">
+              <trim prefix="or">
+                <choose>
+                   <when test="type == 'O'.toString()">
+                      o.onum=#{keyword}
+                   </when>
+                   <when test="type == 'M'.toString()">
+                      m.mid like '%'||#{keyword}||'%'
+                   </when>   
+                   <when test="type == 'P'.toString()">
+                      o.recname like '%'||#{keyword}||'%'
+                   </when>
+                   <when test="type == 'S'.toString()">
+                      o.mnum like '%'||#{keyword}||'%'
+                   </when>                     
+                </choose>               
+              </trim>
+           </foreach>
+        </trim>
+        
+        
+ 	</select>
+ 
+ 
+ 	<!-- 주문 한개 가져오기 -->
+ 	<select id="read" resultType="aOrderVO">
+ 		SELECT 
+		    o.onum, o.mnum, o.dpnum, o.daddr, o.recname, o.rectel, o.ofee, o.ototal
+		    , o.cpwon, o.classper, o.is_sub, o.otype, o.odate, o.odel_state, m.mid
+		FROM 
+		    oder o
+		    join member m on o.mnum = m.mnum
+		WHERE 
+		    o.onum = #{onum}
+ 	</select>
+
+ 	<!-- 주문 삭제 -->
+ 	<delete id="delete">
+ 		DELETE FROM 
+ 			oder 
+ 		WHERE 
+ 			onum = #{onum}
+ 	</delete>
+ 
+ 
+ 	<!-- 주문 수정 -->
+ 	<update id="update">
+ 		UPDATE
+ 			oder
+ 		SET
+ 			dpnum = #{dpnum}, daddr=#{daddr}, recname = #{recname}, rectel=#{rectel}, ofee=#{ofee}, cpwon=#{cpwon}
+ 			, classper = #{classper}, is_sub = #{is_sub}, otype=#{otype}, odate = #{odate}, odel_state = #{odel_state} 
+ 		WHERE
+ 			onum = #{onum}
+ 	</update>
+ 
+ 
+ 
+ </mapper>

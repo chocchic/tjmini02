@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="com.admin.mapper.ProductMapper">
+ 
+ 
+ 	<insert id="register">
+		INSERT INTO
+ 			product(pnum, pname, pprice, pstock, prdate, pdiet,
+ 			pnutr1, pnutr2, pnutr3, ppdate, pexdate, 
+ 			is_sale, status, thumb, detail
+ 			)
+ 		VALUES
+ 			(product_seq.nextval, #{pname}, #{pprice}, #{pstock}, sysdate, #{pdiet}, 
+ 			#{pnutr1}, #{pnutr2}, #{pnutr3}, #{ppdate}, #{pexdate}, 
+ 			#{is_sale}, #{status}, #{thumb}, #{detail}
+ 			)
+ 	</insert>
+ 
+ 	
+ 	<select id="getList" resultType="aProductVO">
+ 		SELECT 
+ 			*
+ 		FROM
+ 			product
+ 	</select>
+ 
+ 	<sql id="criteria">
+ 		<trim prefix="where" prefixOverrides="or">
+           <foreach item="type" collection="typeArr">
+              <trim prefix="or">
+                <choose>
+                   <when test="type == 'N'.toString()">
+                      pnum = #{keyword}
+                   </when>
+                   <when test="type == 'P'.toString()">
+                      pname like '%'||#{keyword}||'%'
+                   </when>   
+                   <when test="type == 'D'.toString()">
+                      pdiet like '%'||#{keyword}||'%'
+                   </when>    
+                   <when test="type == 'V'.toString()">
+                      pnutr1 like '%'||#{keyword}||'%' or
+                      pnutr2 like '%'||#{keyword}||'%' or
+                      pnutr3 like '%'||#{keyword}||'%'
+                   </when>                     
+                </choose>               
+              </trim>
+           </foreach>
+        </trim>
+ 	</sql>
+ 
+ 
+ 	<select id="getListWithPaging" resultType="aProductVO">
+      <![CDATA[
+         SELECT 
+         	pnum, pname, pprice, pstock, prdate, pdiet,
+ 			pnutr1, pnutr2, pnutr3, ppdate, pexdate, 
+ 			is_sale, status, thumb, detail 
+         FROM
+             (SELECT 
+             	rownum r, pnum, pname, pprice, pstock, prdate, pdiet,
+ 				pnutr1, pnutr2, pnutr3, ppdate, pexdate, 
+ 				is_sale, status, thumb, detail
+             FROM 
+                (SELECT /*+ INDEX_DESC(product pk_product)*/ 
+                	pnum, pname, pprice, pstock, prdate, pdiet,
+		 			pnutr1, pnutr2, pnutr3, ppdate, pexdate, 
+		 			is_sale, status, thumb, detail 
+                FROM product
+       ]]>
+       
+                <include refid="criteria"></include>
+       
+       <![CDATA[
+                ) 
+             WHERE 
+             	rownum <= (#{pageNum} * #{listQty} )) 
+         WHERE 
+         	r > (#{pageNum} - 1) * #{listQty}
+      ]]>
+   </select>
+ 
+ 	<!-- 전체 글의 개수 가져오기 : 전체 일때랑 검색했을때 두방법 모두 사용 -->
+ 	<select id="getTotalCount" resultType="int">
+ 		SELECT 
+ 			count(*) 
+ 		FROM 
+ 			product
+ 		<trim prefix="where" prefixOverrides="or">
+           <foreach item="type" collection="typeArr">
+              <trim prefix="or">
+                <choose>
+                   <when test="type == 'N'.toString()">
+                      pnum = #{keyword}
+                   </when>
+                   <when test="type == 'P'.toString()">
+                      pname like '%'||#{keyword}||'%'
+                   </when>   
+                   <when test="type == 'D'.toString()">
+                      pdiet like '%'||#{keyword}||'%'
+                   </when>    
+                   <when test="type == 'V'.toString()">
+                      pnutr1 like '%'||#{keyword}||'%' or
+                      pnutr2 like '%'||#{keyword}||'%' or
+                      pnutr3 like '%'||#{keyword}||'%'
+                   </when>                     
+                </choose>               
+              </trim>
+           </foreach>
+        </trim>
+ 	</select>
+ 
+ 
+ 	<!-- 글 한개 가져오기 -->
+ 	<select id="read" resultType="aProductVO">
+ 		SELECT 
+ 			* 
+ 		FROM 
+ 			product 
+ 		WHERE
+ 			pnum = #{pnum}
+ 	</select>
+ 
+ 	<!-- 글 삭제 -->
+ 	<delete id="delete">
+ 		DELETE FROM 
+ 			product 
+ 		WHERE 
+ 			pnum = #{pnum}
+ 	</delete>
+ 
+ 
+ 	<!-- 글 수정 -->
+ 	<update id="update">
+ 		UPDATE
+ 			product
+ 		SET
+ 			pname =#{pname}, pprice= #{pprice}, pstock= #{pstock}, pdiet= #{pdiet},
+ 			pnutr1= #{pnutr1}, pnutr2= #{pnutr2}, pnutr3= #{pnutr3}, ppdate= #{ppdate},
+ 			pexdate= #{pexdate}, is_sale= #{is_sale}, status= #{status}, thumb= #{thumb},
+ 			detail= #{detail}
+ 		WHERE
+ 			pnum = #{pnum}
+ 	</update>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+ </mapper>
