@@ -27,18 +27,19 @@ public class ShopRestController {
 	private final ShopService shopService;
 	
 	@PostMapping("updatecart")
-	public String updatecart(@AuthenticationPrincipal CustomUser user, @RequestBody CartDTO cartDTO,Model model) {
+	public ResponseEntity<String> updatecart(@AuthenticationPrincipal CustomUser user, @RequestBody CartDTO cartDTO,Model model) {
 		if(user!=null) {
 			String mid = user.getUsername();
 		    Long mnum = shopService.findMnum(mid);
 			if(shopService.updateCart(cartDTO, mnum) > 0) {
-				System.out.println("updated");
-				return "redirect:/vegekit/shop/cart";
-			}else {
-				return "vegekit/shop/list";
+				//System.out.println("updated");
+				//return "redirect:/vegekit/shop/cart";
+				return new ResponseEntity<>("상품이 장바구니에 담겼습니다.", HttpStatus.OK);
 			}
+			return new ResponseEntity<>("옳지 않은 상품입니다.", HttpStatus.FORBIDDEN);
 		}
-		return "/vegekit/shop/list";
+		return new ResponseEntity<>("옳지 않은 사용자 입니다.", HttpStatus.FORBIDDEN);
+		//return "/vegekit/shop/list";
 	}
 	
 	@DeleteMapping("cart/{pnum}")

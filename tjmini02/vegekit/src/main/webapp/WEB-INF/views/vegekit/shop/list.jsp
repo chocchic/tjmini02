@@ -363,12 +363,27 @@
 			console.log("form : ",form);
 			$(".cartBtn").click(function(e){
 				e.preventDefault();
+				var cart = {pnum : $(this).attr("href"),  quantity:1 }
+				$.ajax({
+					url: '/shop/addcart',
+					method: 'post',
+					data: JSON.stringify(cart),
+					contentType: 'application/json; charset=utf-8', dataType: 'json',
+					success: function(data){
+						alert(data);
+					},fail(function(xhr, status, e){
+						if(e){
+							error(e);
+						}
+					}
+				})
+				/*
 				var link = document.location.href;
 				form.attr("action", "/vegekit/shop/addcart");
 				form.append("<input type='hidden' name='amount' value='1' />");
 				form.append("<input type='hidden' name='pnum' value='"+ $(this).attr("href") + "' />");
-				form.append("<input type='hidden' name='url' value='"+ link + "' />");
 			    form.submit();
+			    */
 			});
 			console.log("heart btn : ",$("#heartBtn").attr('href'));
 			$(".heartBtn").click(function(e){
@@ -393,10 +408,12 @@
 			$("#logoutBtn").click(function(){
 				$("#logoutForm").submit();
 			});
+			/*
 			 var resultMsg = '${result}' || '';
 			if(resultMsg != '') {
 			  	alert(resultMsg);
 			}
+			*/
 		});// ready
 		
 	</script>
