@@ -370,7 +370,12 @@
 					data: JSON.stringify(cart),
 					contentType: 'application/json; charset=utf-8', dataType: 'json',
 					success: function(data){
-						alert(data);
+						if (window.confirm(data + "\n장바구니로 이동하시겠습니까?")
+						{
+						    location.herf="vegekit/shop/cart";
+						}else{
+							history.back(); // 내가 검색중인 키워드나 ord를 남기기위해
+						}
 					},fail(function(xhr, status, e){
 						if(e){
 							error(e);

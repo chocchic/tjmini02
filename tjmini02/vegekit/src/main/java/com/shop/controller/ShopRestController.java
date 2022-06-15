@@ -24,7 +24,26 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("vegekit/shop/*")
 @RequiredArgsConstructor
 public class ShopRestController {
+	
 	private final ShopService shopService;
+	
+	// list.jsp에서 처리되는 애들
+	@PostMapping("addcart")
+	public ResponseEntity<String> addCart(@RequestBody CartDTO cartDTO, @AuthenticationPrincipal CustomUser user) {
+		if(user != null) {
+        	String mid = user.getUsername();
+        	Long mnum = shopService.findMnum(mid);
+        	if(shopService.findCart(cartDTO.getPnum(),mnum)==1) {
+        		shopService.updateCart(cartDTO,mnum);
+        		return new ResponseEntity<>("상품이 장바구니에 담겼습니다.", HttpStatus.OK);
+        	}else {
+        		shopService.addCart(cartDTO.getPnum(), mnum);
+        		return new ResponseEntity<>("상품이 장바구니에 담겼습니다.", HttpStatus.OK);
+        	}
+        }
+		return new ResponseEntity<>("옳지 않은 요청입니다.", HttpStatus.FORBIDDEN);
+    }
+	
 	
 	@PostMapping("updatecart")
 	public ResponseEntity<String> updatecart(@AuthenticationPrincipal CustomUser user, @RequestBody CartDTO cartDTO,Model model) {
@@ -53,28 +72,7 @@ public class ShopRestController {
 		}
 		return new ResponseEntity<>("success",HttpStatus.OK);
 	}
-	
-	@GetMapping("addcart")
-	public String addCart(@RequestBody CartDTO cartDTO, @RequestParam("url") String url,@AuthenticationPrincipal CustomUser user, RedirectAttributes rttr) {
-		if(user != null) {
-        	String mid = user.getUsername();
-        	Long mnum = shopService.findMnum(mid);
-        	if(shopService.findCart(cartDTO.getPnum(),mnum)==1) {
-        		shopService.updateCart(cartDTO,mnum);
-        		rttr.addFlashAttribute("result", "addCart success");
-        	}else {
-        		shopService.addCart(cartDTO.getPnum(), mnum);
-        		rttr.addFlashAttribute("result", "add to Heart success");
-        	}
-        }else{
-        	rttr.addFlashAttribute("result", "no user info");
-        }
-        
-        rttr.addFlashAttribute("result", "addCart success");
-        
-        return "redirect:"+url;
-    }
-	
+		
 	@GetMapping("list/addheart")
     public String addHeart(@RequestParam("pnum") Long pnum , @RequestParam("url") String url,@AuthenticationPrincipal CustomUser user, RedirectAttributes rttr) {
         if(user != null) {
