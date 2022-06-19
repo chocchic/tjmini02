@@ -1,9 +1,12 @@
 package com.mydiary.model;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,13 +19,19 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-@ToString
+@ToString(exclude="member")
 public class Diary extends BaseEntity{
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long dno;
+	@Column(length=225, nullable = false)
 	private String title;
+	@Column(length=2000, nullable = false)
 	private String content;
+
 	private boolean isSecret;
 	private boolean canReply;
+	
+	@ManyToOne(fetch=FetchType.LAZY)
+	private Member member;
 }

@@ -1,4 +1,4 @@
-package com.mydiary;
+package com.mydiary.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -13,10 +13,11 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+    	/*
         http
                 .authorizeRequests()
                     .antMatchers("/").permitAll()
-                    .antMatchers("/mydirary/mypage").hasRole("USER", "ADMIN")
+                    .antMatchers("/mydirary/mypage").hasRole("USER", "ADMIN", "MANAGER")
                     .anyRequest().authenticated()
                 .and()
                     .formLogin()
@@ -26,6 +27,7 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
                     .logout();
         http.formLogin().permitAll();
         http.logout().permitAll();
+        */
     }
     
     @Autowired

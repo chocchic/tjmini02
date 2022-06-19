@@ -1,4 +1,4 @@
-package com.mydiary;
+package com.mydiary.security;
 
 import java.io.IOException;
 
@@ -18,7 +18,7 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 @Configuration
 public class CustomAuthentificationFailureHandler implements AuthenticationFailureHandler{
 
-	// ë¹„ë°€ë²ˆí˜¸ 3ë²ˆì´ìƒ í‹€ë¦´ ì‹œ ì ê¸ˆì²˜ë¦¬ 
+	// ë¹„ë?ë²ˆí˜¸ 3ë²ˆì´?ƒ ??ë¦? ?‹œ ? ê¸ˆì²˜ë¦? 
 	protected void loginFailureCount(String username) {
 		// 
 	}
@@ -30,12 +30,12 @@ public class CustomAuthentificationFailureHandler implements AuthenticationFailu
 		
 		if(exception instanceof BadCredentialsException || exception instanceof InternalAuthenticationServiceException) {
 			//loginFailureCount(loginid);
-			errormsg = "ì•„ì´ë””ë‚˜ ë¹„ë°€ë²ˆí˜¸ê°€ ë§ì§€ ì•ŠìŠµë‹ˆë‹¤. ë‹¤ì‹œ í™•ì¸í•´ì£¼ì„¸ìš”";
+			errormsg = "?•„?´?””?‚˜ ë¹„ë?ë²ˆí˜¸ê°? ë§ì? ?•Š?Šµ?‹ˆ?‹¤. ?‹¤?‹œ ?™•?¸?•´ì£¼ì„¸?š”";
 		}else if (exception instanceof DisabledException) {
 			//loginFailureCount(loginid);
-			errormsg = "ê³„ì •ì´ ë¹„í™œì„±í™” ë˜ì—ˆìŠµë‹ˆë‹¤. ê´€ë¦¬ìì—ê²Œ ë¬¸ì˜í•˜ì„¸ìš”.";
+			errormsg = "ê³„ì •?´ ë¹„í™œ?„±?™” ?˜?—ˆ?Šµ?‹ˆ?‹¤. ê´?ë¦¬ì?—ê²? ë¬¸ì˜?•˜?„¸?š”.";
 //		}else if(exception instanceof CredentialExpiredException) {
-//			errormsg = "ë¹„ë°€ë²ˆí˜¸ ìœ íš¨ê¸°ê°„ì´ ë§Œë£Œë˜ì—ˆìŠµë‹ˆë‹¤. ê´€ë¦¬ìì—ê²Œ ë¬¸ì˜í•˜ì„¸ìš”";
+//			errormsg = "ë¹„ë?ë²ˆí˜¸ ?œ ?š¨ê¸°ê°„?´ ë§Œë£Œ?˜?—ˆ?Šµ?‹ˆ?‹¤. ê´?ë¦¬ì?—ê²? ë¬¸ì˜?•˜?„¸?š”";
 		}
 //		
 		request.setAttribute("loginid",loginid);
