@@ -16,11 +16,12 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/mydiary")
 @RequiredArgsConstructor
 public class MypageContorller {
-	private final MemberService memberService;
+	//private final MemberService memberService;
 	
 	@PostMapping("/mypage/update")
 	public ResponseEntity<?> updateMember(MemberDTO dto){
 		ResponseMemberDTO response = null;
+		/*
 		try {
 			//데이터 수정 처리
 			String email = memberService.updateMember(dto);
@@ -29,12 +30,14 @@ public class MypageContorller {
 			String error = e.getMessage();
 			response = ResponseMemberDTO.builder().error(error).build();
 		}
+		*/
 		return ResponseEntity.ok().body(response);
 	}
 	
 	@PostMapping("/mypage/delete")
 	public ResponseEntity<?> deleteMember(MemberDTO dto){
 		ResponseMemberDTO response = null;
+		/*
 		try {
 			//데이터 삭제 처리
 			String email = memberService.deleteMember(dto);
@@ -43,6 +46,7 @@ public class MypageContorller {
 			String error = e.getMessage();
 			response = ResponseMemberDTO.builder().error(error).build();
 		}
+		*/
 		return ResponseEntity.ok().body(response);
 	}
 	

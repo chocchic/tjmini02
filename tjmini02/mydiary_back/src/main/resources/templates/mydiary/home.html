@@ -4,11 +4,11 @@
    <th:block th:fragment="content">
       <h1 class="mt-4">
          내가 쓴 일기들
-         <span><a th:href="@{/board/register}">
+         <span><a th:href="@{/mydiary/register}">
          	<button type="button" class="btn btn-outline-primary">REGISTER</button>
          </a></span>
       </h1>
-      <form action="/board/list" method="get" id="searchForm">
+      <form action="/mydiary/home" method="get" id="searchForm">
          <div class="input-group">
             <input type="hidden" name="page" value="1">
             <div class="input-group-prepend">
@@ -44,32 +44,32 @@
          <tbody>
             <tr th:each="dto : ${result.list}">
                <th scope="row">[[${dto.dno}]]</th>
-               <td><a th:href="@{/mydiary/diary(bno = ${dto.dno},
+               <td><a th:href="@{/mydiary/diary(dno = ${dto.dno},
                     page= ${result.page},
                     type=${pageRequestDTO.type} ,
                     keyword = ${pageRequestDTO.keyword})}">[[${dto.title}]]
                </a></td>
                <td>[[${#temporals.format(dto.regdate, 'yyyy/MM/dd')}]]</td>
-               <td>[[${dto.weather]]</td>
+               <td>[[${dto.weather}]]</td>
             </tr>
          </tbody>
       </table>
       <ul class="pagination h-100 justify-content-center align-items-center">
          <li class="page-item " th:if="${result.prev}"><a
             class="page-link"
-            th:href="@{/board/list(page= ${result.start-1},
+            th:href="@{/mydiary/home(page= ${result.start-1},mno=${mno}
                     type=${pageRequestDTO.type} ,
                     keyword = ${pageRequestDTO.keyword} ) }"
             tabindex="-1">Previous</a></li>
          <li th:class=" 'page-item ' + ${result.page == page?'active':''} "
             th:each="page: ${result.pageList}"><a class="page-link"
-            th:href="@{/board/list(page = ${page} ,
+            th:href="@{/mydiary/home(page = ${page},mno=${mno},
                    type=${pageRequestDTO.type} ,
                    keyword = ${pageRequestDTO.keyword}  )}">
                [[${page}]] </a></li>
          <li class="page-item" th:if="${result.next}"><a
             class="page-link"
-            th:href="@{/board/list(page= ${result.end + 1} ,
+            th:href="@{/mydiary/home(page= ${result.end + 1},mno=${mno},
                     type=${pageRequestDTO.type} ,
                     keyword = ${pageRequestDTO.keyword} )}">Next</a>
          </li>

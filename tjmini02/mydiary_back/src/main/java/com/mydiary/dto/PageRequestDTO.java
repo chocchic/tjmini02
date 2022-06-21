@@ -18,7 +18,7 @@ public class PageRequestDTO {
 	private int size;
 	
 	//특정 항목으로 조회하고자 하는 경우
-	private String condition;
+	private String type;
 	private String keyword;
 	private Long mno;
 	
@@ -26,7 +26,8 @@ public class PageRequestDTO {
 	public PageRequestDTO() {
 		page = 1;
 		size = 10;
-		condition = "";
+		mno = 101L;
+		type = "";
 		keyword = "";
 	}
 	//페이지 번호 와 데이터 개수를 가지고 Pageable 객체를 생성해주는 메서드

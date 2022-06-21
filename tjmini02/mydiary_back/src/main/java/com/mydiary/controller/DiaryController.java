@@ -21,14 +21,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DiaryController {
 	private final DiaryService diaryService;
-	private final MemberService memberService;
-	
-	@GetMapping("/home")
-	public String showhome(PageRequestDTO dto, Model model) {
-		model.addAttribute("result",diaryService.getList(dto));
-		return "/mydiary/list";
-	}
-	
+	//private final MemberService memberService;
+		
 	//페이지 단위로 데이터 가져오기 -> 새로고침 필요할 때 호출
 	@GetMapping("/getlist")
 	public ResponseEntity<?> getList(PageRequestDTO dto){

@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import com.mydiary.dto.MemberDTO;
 
 public interface MemberService {
-
+/*
 	String registerMember(MemberDTO dto);
 
 	MemberDTO loginMember(MemberDTO dto);
@@ -17,5 +17,5 @@ public interface MemberService {
 	String deleteMember(MemberDTO dto);
 
 	String updateMember(MemberDTO dto);
-
+*/
 }

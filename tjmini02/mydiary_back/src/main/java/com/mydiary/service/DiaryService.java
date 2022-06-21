@@ -31,8 +31,8 @@ public interface DiaryService {
 	
 	//Entity를 DTO로 변환해주는 메서드
 	public default DiaryDTO entityToDto(Diary item) {
-		DiaryDTO dto = DiaryDTO.builder().title(item.getTitle()).content(item.getContent())
-				.nickname(item.getMember().getNickname()).build();
+		DiaryDTO dto = DiaryDTO.builder().dno(item.getDno()).title(item.getTitle()).content(item.getContent()).regdate(item.getRegDate())
+				.nickname(item.getMember().getNickname()).weather(item.getWeather()).build();
 		return dto;
 	}
 	

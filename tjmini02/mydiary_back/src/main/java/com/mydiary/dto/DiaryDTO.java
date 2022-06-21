@@ -1,5 +1,6 @@
 package com.mydiary.dto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
@@ -22,6 +23,7 @@ public class DiaryDTO {
 	private String weather;
 	//전송된 파일의 내용을 저장할 속성
 	private MultipartFile[] image;
-	
+	private LocalDateTime regdate;
+
 	private List<DiaryImgDTO> imagelist;
 }

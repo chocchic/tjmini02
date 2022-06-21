@@ -11327,3 +11327,15 @@ body.sb-sidenav-toggled #wrapper #sidebar-wrapper {
     margin-left: -15rem;
   }
 }
+
+.main-container{
+	display : flex;
+	justify-content: center;
+	flex-direction: column;
+	align-items: center;
+}
+.item{
+	margin:5px;
+	display : flex;
+	flex-direction: row;
+}

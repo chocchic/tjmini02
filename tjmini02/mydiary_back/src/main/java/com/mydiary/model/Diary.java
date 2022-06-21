@@ -28,9 +28,12 @@ public class Diary extends BaseEntity{
 	private String title;
 	@Column(length=2000, nullable = false)
 	private String content;
-
-	private boolean isSecret;
-	private boolean canReply;
+	@Column(length=20)
+	private String weather;
+	@Column
+	private Integer isSecret;
+	@Column
+	private Integer canReply;
 	
 	@ManyToOne(fetch=FetchType.LAZY)
 	private Member member;
