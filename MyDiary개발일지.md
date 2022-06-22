@@ -25,3 +25,14 @@
         1) 날짜/ 작성자 정보 보이기, 제목/날씨/내용/사진 등록 가능하도록, 날씨는 되도록 버튼이나 셀렉트박스를 통해  
         2) 회원 정보로 추천 질문  
         3) 10개 이상의 일기는 등록하지 못한다고 알림  
+
+0622 : 
+    basic.html 로고 깨진거 수정  
+    querydsl을 이용한 type/keyword가 있는 검색 테스트 완료 -> 왜 뷰에는 안뜰까 -> 성공  
+    이메일 SMTP 성공 / 쿼츠 됨 -> 쿼츠가 자동 삭제 시작되지 않으므로 서버 새로고침시 등록된 빈으로 나온다.. 그냥 코드 고치면 서버 껐다 키기 
+    크론식 만들기 귀찮을 떄 : http://www.cronmaker.com/
+    포트 번호 중복이라는 오류 뜰 때: netstat -ano로 그 포트 pid 찾아서 taskkill /f /pid '찾은pid'  
+    pagenation 안 뜨는 이유 : totalPage 없이 계속 페이지 리스트만들려고 하니 totalPage가 초기화된값인 0으로 들어가 있어서 페이지가 항상 0으로 나옴 서비스 메서드의 setTotalPage와 makePageList 함수 위치를 바꿈  
+    register폼에 있는 ajax diary_imgDTO에도 맞도록 수정하기 오늘은 너무 졸려서 이만  
+
+

@@ -1,9 +1,12 @@
 package com.mydiary.persistence;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.mydiary.model.Diary;
+import com.querydsl.core.Tuple;
 
 public interface QuerydslRepository {
 	// QueryDSL을 적용한 SQL을 실행하기 위한 메서드

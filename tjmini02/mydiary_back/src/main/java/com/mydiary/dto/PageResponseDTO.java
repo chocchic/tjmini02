@@ -40,7 +40,7 @@ public class PageResponseDTO {
 	public void makePageList(Pageable pageable) {
 		page = pageable.getPageNumber() + 1;
 		size = pageable.getPageSize();
-		
+
 		int tempEnd = (int)(Math.ceil(page/10.0)) * 10;
 		start = tempEnd - 9;
 		prev = start > 1;
@@ -48,5 +48,4 @@ public class PageResponseDTO {
 		next = totalPage > tempEnd;
 		pageList = IntStream.rangeClosed(start, end).boxed().collect(Collectors.toList());
 	}
-	
 }

@@ -57,10 +57,10 @@ public class QuerydslRepositoryImpl extends QuerydslRepositorySupport implements
 		QMember member = QMember.member;
 		
 		JPQLQuery<Diary> jpqlquery = from(diary);
-		jpqlquery.leftJoin(member).on(diary.member.eq(member));
+		jpqlquery.leftJoin(member).on(diary.member.mno.eq(member.mno));
 		
 		// 검색 결과를 만들어주는 부분
-		JPQLQuery<Tuple> tuple = jpqlquery. select(diary, member.nickname);
+		JPQLQuery<Tuple> tuple = jpqlquery.select(diary, member.nickname);
 
 		// 동적인ㅇ 쿼리 수행을 위한 객체 생성
 		BooleanBuilder booleanBuilder = new BooleanBuilder();

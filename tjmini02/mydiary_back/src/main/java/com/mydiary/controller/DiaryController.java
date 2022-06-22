@@ -22,29 +22,12 @@ import lombok.RequiredArgsConstructor;
 public class DiaryController {
 	private final DiaryService diaryService;
 	//private final MemberService memberService;
-		
-	//페이지 단위로 데이터 가져오기 -> 새로고침 필요할 때 호출
-	@GetMapping("/getlist")
-	public ResponseEntity<?> getList(PageRequestDTO dto){
-		//Security 연결시 바꾸기 dto에 mno담아서 전달
-		//Long mno = memberService.getMno();
-		PageResponseDTO response = null;
-		try {
-			response = diaryService.getList(dto);
-		}catch(Exception e) {
-			response = new PageResponseDTO();
-			response.setError(e.getMessage());
-		}
-		return ResponseEntity.ok().body(response);
-	}
-	
-	// 다이어리 입력 폼으로 이동
-	
 	
 	//데이터 삽입
 	@PostMapping("/register")
 	public ResponseEntity<?> registerItem(DiaryDTO dto){
 		DiaryDTO response = null;
+		System.out.println("regi:"+dto);
 		try {
 			Long dno = diaryService.registerDiary(dto);
 			response = DiaryDTO.builder().dno(dno).build();

@@ -21,6 +21,8 @@ public class DiaryDTO {
 	private String content;
 	private String nickname;
 	private String weather;
+	private String isSecret;
+	private String canReply;
 	//전송된 파일의 내용을 저장할 속성
 	private MultipartFile[] image;
 	private LocalDateTime regdate;

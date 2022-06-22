@@ -26,9 +26,7 @@ public class PageRequestDTO {
 	public PageRequestDTO() {
 		page = 1;
 		size = 10;
-		mno = 101L;
-		type = "";
-		keyword = "";
+		mno = 102L;
 	}
 	//페이지 번호 와 데이터 개수를 가지고 Pageable 객체를 생성해주는 메서드
 	public Pageable getPageable(Sort sort) {

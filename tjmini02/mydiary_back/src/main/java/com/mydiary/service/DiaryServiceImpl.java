@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -28,11 +29,15 @@ import com.mydiary.dto.PageRequestDTO;
 import com.mydiary.dto.PageResponseDTO;
 import com.mydiary.model.Diary;
 import com.mydiary.model.Diary_image;
+import com.mydiary.model.Member;
 import com.mydiary.persistence.DiaryImgRepository;
 import com.mydiary.persistence.DiaryRepository;
+import com.querydsl.core.Tuple;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class DiaryServiceImpl implements DiaryService{
@@ -194,24 +199,24 @@ public class DiaryServiceImpl implements DiaryService{
 		updateDate();
 		return itemid;
 	}
-
 	@Override
 	public PageResponseDTO getList(PageRequestDTO dto) {
+		log.info("getlist에서 받은 dto : "+dto);
 		Sort sort = Sort.by("dno").descending();
-		Pageable pageable = PageRequest.of(
-				dto.getPage()-1, dto.getSize(), sort);
-		Page<Diary> page = diaryRepository.findAll(pageable);
-		
+		Pageable pageable = PageRequest.of(dto.getPage()-1, dto.getSize(), sort);
+		Page<Object[]> pages = diaryRepository.searchPage(dto.getType(), dto.getKeyword(), pageable);
 		PageResponseDTO result = new PageResponseDTO();
+		result.setTotalPage(pages.getTotalPages());
 		result.makePageList(pageable);
-		result.setTotalPage(page.getTotalPages());
 		List<DiaryDTO> list = new ArrayList<>();
-		page.get().forEach(item -> {
-			list.add(entityToDto(item));
-		});
+		for(Object[] obj: pages.getContent()) {
+			Diary diary = (Diary) obj[0];
+			DiaryDTO diaryDTO = DiaryDTO.builder().dno(diary.getDno()).content(diary.getContent())
+					.title(diary.getTitle()).weather(diary.getWeather()).nickname((String) obj[1])
+					.regdate(diary.getRegDate()).build();
+			list.add(diaryDTO);
+		}
 		result.setList(list);
 		return result;
 	}
-	
-	
 }
