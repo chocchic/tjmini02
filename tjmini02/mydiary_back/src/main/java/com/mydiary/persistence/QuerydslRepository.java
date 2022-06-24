@@ -1,5 +1,6 @@
 package com.mydiary.persistence;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -15,4 +16,7 @@ public interface QuerydslRepository {
 	// 검색을 위한 메서드
 	// 3개의 항목을 묶어서 하나의 클래스로 표현해도 됩니다.
 	Page<Object[]> searchPage(String type, String keyword, Pageable pageable);
+
+	public Diary searchNext(Long dno, Long mno, LocalDateTime regdate);
+	public Diary searchPrev(Long dno, Long mno, LocalDateTime regdate);
 }

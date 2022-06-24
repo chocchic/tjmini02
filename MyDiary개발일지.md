@@ -34,5 +34,32 @@
     포트 번호 중복이라는 오류 뜰 때: netstat -ano로 그 포트 pid 찾아서 taskkill /f /pid '찾은pid'  
     pagenation 안 뜨는 이유 : totalPage 없이 계속 페이지 리스트만들려고 하니 totalPage가 초기화된값인 0으로 들어가 있어서 페이지가 항상 0으로 나옴 서비스 메서드의 setTotalPage와 makePageList 함수 위치를 바꿈  
     register폼에 있는 ajax diary_imgDTO에도 맞도록 수정하기 오늘은 너무 졸려서 이만  
+0623 : 
+    나중에 댓글 추가한다면 diary.html에 추가할 코드를 reply.html에 저장해두었다
+    댓글 등록은 굳이 ajax처리를 하지 않아도 된다 -> 페이지 이동이 귀찮으므로 그냥 컨트롤러로
+    대신 일기 읽을 때 다음 일기 / 이전 일기 기능을 넣어서 ajax처리하는게 좋아보임 -> 그냥 컨트롤러로함
+    diary에 다음 일기와 이전 일기를 위한 메서드 추가 -> null이 들어가면 귀찮으니까 그런 일기 없을 경우 dno가 -1  
+    사진은 로컬 파일로 접근해서 올리는건 불가능 -> 서버에 올리기로 경로, 사진 이미 올라간거 위치 바꿈
 
+    내일 해야할 일 : 수정폼의 사진삭제 완벽히, 수정, 삭제 잇기  
+
+0624 : 
+    modify.html에서 수정버튼을 누르면 컨트롤러에 도달하지 않고 403에러 발생 -> post와 연관잇는듯
+    -> form에 타임리프로 action추가해주니까 해결 ~> 타임리프가 post매핑해줄 때 자동으로 csrf를 만들어주는데 그냥 form으로 보내니깐 안 만들어져서 오류!! 
+    -> th:action="@{url}"  안에 url을 잘 쓰도록 하자.. 경로가 틀리면 404나옴
+    -> 수정시 Field error in object 'diaryDTO' on field 'image': rejected value [] 오류가 나옴 매핑이 안되서라는거같음
+    ~> enctype="multipart/form-data"이걸 form에 안넣어줬다
+    수정 / 삭제 완료
+
+    사진의 삭제 성공
+    ~> data가 잘 안넘어 와서 done으로 해서 성공했는지 넘어온 데이터를 확인  
+
+    home, register에 추천 질문 올리기 끝 
+    남은 것 : 
+    질문 새로고침을 ajax로 구현  
+    security를 통한 회원가입
+
+    react로 프론트 바꾸기 ~> cors설정부터 하기  
+
+    
 

@@ -3,7 +3,9 @@ package com.mydiary.service;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -30,8 +32,10 @@ import com.mydiary.dto.PageResponseDTO;
 import com.mydiary.model.Diary;
 import com.mydiary.model.Diary_image;
 import com.mydiary.model.Member;
+import com.mydiary.model.Question;
 import com.mydiary.persistence.DiaryImgRepository;
 import com.mydiary.persistence.DiaryRepository;
+import com.mydiary.persistence.QuestionRepository;
 import com.querydsl.core.Tuple;
 
 import lombok.RequiredArgsConstructor;
@@ -43,6 +47,7 @@ import lombok.extern.log4j.Log4j2;
 public class DiaryServiceImpl implements DiaryService{
 	private final DiaryRepository diaryRepository;
 	private final DiaryImgRepository diaryimgRepo;
+	private final QuestionRepository qRepository;
 	
 	//application.properties 파일에 작성한 속성 가져오기
 	@Value("${com.choc.upload.path}")
@@ -79,7 +84,11 @@ public class DiaryServiceImpl implements DiaryService{
 	
 	@Override
 	public Long registerDiary(DiaryDTO dto) {
-		//파일 업로드 처리
+		Diary item = dtoToEntity(dto);
+		// 먼저 다이어리 작성 후
+		diaryRepository.save(item);
+		Long dno = item.getDno();//diaryRepository.findIdByDiary(item);
+		//파일 업로드 처리 -> 데이터베이스상에 등록
 		//전송 받은 파일을 가져오기
 		//image 파라미터의 값을 가져오기
 		for(MultipartFile uploadFile : dto.getImage()) {
@@ -107,7 +116,9 @@ public class DiaryServiceImpl implements DiaryService{
 					uploadFile.transferTo(savePath);
 					//이미지 경로를 DTO에 설정
 					//dto.setImageurl(realUploadPath + File.separator + uuid + fileName);
-					DiaryImgDTO imgdto = DiaryImgDTO.builder().dno(dto.getDno()).name(originalName)
+					int Idx = originalName.lastIndexOf(".");
+					String name = originalName.substring(0,Idx);
+					DiaryImgDTO imgdto = DiaryImgDTO.builder().dno(dno).name(name)
 							.imageurl(realUploadPath + File.separator + uuid + fileName).build();
 					diaryimgRepo.save(imgdtoToEntity(imgdto));
 				}catch(Exception e) {
@@ -115,8 +126,6 @@ public class DiaryServiceImpl implements DiaryService{
 				}
 			}
 		}
-		Diary item = dtoToEntity(dto);
-		diaryRepository.save(item);
 		//수정한 시간을 기록
 		updateDate();
 		return item.getDno();
@@ -128,59 +137,46 @@ public class DiaryServiceImpl implements DiaryService{
 		Optional<Diary> optional = diaryRepository.findById(dno);
 		if(optional.isPresent()) {
 			Diary current = optional.get();
-			List<Diary_image> imgs = diaryimgRepo.findDiary_imageByDiary(current);
+			List<Diary_image> imgs = diaryimgRepo.findByDiary(current);
+			List<DiaryImgDTO> imgdtolist = new ArrayList<DiaryImgDTO>();
 			for(Diary_image img : imgs) {
-				
+				imgdtolist.add(imgentityToDto(img));
 			}
-			return entityToDto(optional.get());
+			DiaryDTO result = entityToDto(optional.get());
+			result.setImagelist(imgdtolist);
+			return result;
 		}
 		return null;
 	}
 
 	@Override
 	public Long updateDiary(DiaryDTO dto) {
-		// 삽입할 때는 이미지가 없으면 이미지 업로드를 처리하지 않거나 기본 이미지로 설정
-		// 수정을 할 때 이미지가 없다는 것은 수정할 이미지가 없다는 의미가 될 수 있음
 		for(MultipartFile img : dto.getImage()) {
 			if(img.isEmpty() == false) {
-				// 업로드된 파일을 가져오기
 				MultipartFile uploadFile = img;
 				
-				// 원본 파일 이름 찾아오기
 				String originalName = uploadFile.getOriginalFilename();
-				// IE나 Edge에서는 전체 파일 경로가 오기 때문에 마지막 \위치를 찾아서 뒷부부만 가져와야 합.
-				String fileName = originalName.substring(originalName.lastIndexOf("\\")+1); // 모바일에서 이 작업은 안해도 됨
+				String fileName = originalName.substring(originalName.lastIndexOf("\\")+1);
 				
-				// 업로드할 디렉터리 경로를 생성, 회원 정보 이미지와 아이템 이미지를 구별해서 ㅅ저장하고자 하면 makeFolder 메서드를 각ㄱ각 구현
 				String realUploadPath = makeFolder();
 	
-				// 파일 이름 중복을 최소화하기 위한 UUID 생성
 				String uuid = UUID.randomUUID().toString();
-				// 파일 이름 중간에 _를 이용해서 구분
-				// 교재나 검색한 소스가 보일 때 \나 /가 보이면 앞뒤 문맥을 읽어서 디렉터리 기호라면 File.separator로 변경하는 것을 고려
-				// 고재를 볼 때는 어떤 운영체제에서 작성한 것인지 확인하고 교재를 읽어보는 것이 좋습니다. 
 				String saveName = uploadPath + File.separator + realUploadPath + File.separator + uuid + fileName;
-				// 실제 전송할 경로를 생성 - jdk 1.7 이상에서 지원
 				Path savePath = Paths.get(saveName);
 				
 				try {
-					// 파일 전송
 					uploadFile.transferTo(savePath);
 				}catch(Exception e) {
 					System.out.println(e.getLocalizedMessage());
 					e.printStackTrace();
 				}
-				// 파일의 경로를 저장
-				//dto.setImageurl(realUploadPath + File.separator + uuid + fileName);
-				DiaryImgDTO imgdto = DiaryImgDTO.builder().dno(dto.getDno()).name(originalName)
+
+				int Idx = originalName.lastIndexOf(".");
+				String name = originalName.substring(0,Idx);
+				DiaryImgDTO imgdto = DiaryImgDTO.builder().dno(dto.getDno()).name(name)
 						.imageurl(realUploadPath + File.separator + uuid + fileName).build();
 				diaryimgRepo.save(imgdtoToEntity(imgdto));
-			}/*else {
-				// 업로드할 파일이 없을 때 이전 내용을 그대로 적용
-				//dto.setImageurl(getDiary(dto).getImageurl());
-				// image에 대한 테이블이 따로 있으므로 파일 변경이 일어났을 때에 대해서만 처리  
 			}
-			*/
 		}
 		// 데이터베이스에서 수정
 		Diary item = dtoToEntity(dto);
@@ -192,12 +188,10 @@ public class DiaryServiceImpl implements DiaryService{
 	}
 
 	@Override
-	public Long deleteDiary(DiaryDTO dto) {
-		Diary item = dtoToEntity(dto);
-		Long itemid = item.getDno();
-		diaryRepository.deleteById(itemid);
+	public Long deleteDiary(Long dno) {
+		diaryRepository.deleteById(dno);
 		updateDate();
-		return itemid;
+		return dno;
 	}
 	@Override
 	public PageResponseDTO getList(PageRequestDTO dto) {
@@ -218,5 +212,47 @@ public class DiaryServiceImpl implements DiaryService{
 		}
 		result.setList(list);
 		return result;
+	}
+	@Override
+	public DiaryDTO getPrevDiary(DiaryDTO dto) {
+		Diary d = diaryRepository.searchPrev(dto.getDno(), dto.getMember_mno(), dto.getRegdate());
+		if(d != null) {
+			return entityToDto(d);			
+		}
+		return DiaryDTO.builder().dno(-1L).build();
+	}
+	@Override
+	public DiaryDTO getNextDiary(DiaryDTO dto) {
+		Diary d = diaryRepository.searchNext(dto.getDno(), dto.getMember_mno(), dto.getRegdate());
+		if(d != null) {
+			return entityToDto(d);			
+		}
+		return DiaryDTO.builder().dno(-1L).build();
+	}
+	
+	@Override
+	public String deletepicture(Long ino) {
+		String response = "fail";
+		
+		String path = uploadPath + File.pathSeparator + diaryimgRepo.findById(ino).get().getImageurl();
+		Path filePath = Paths.get(path);
+		
+		diaryimgRepo.deleteById(ino);
+		if(diaryimgRepo.findById(ino).isEmpty()) {
+			try {
+				Files.delete(filePath);
+			} catch (IOException e) {
+				e.printStackTrace();
+				System.out.println("사진 없음!");
+			}
+			response = "success" ;
+		}
+		return response;
+	}
+	
+	@Override
+	public String getQ() {
+		int qno = (int)(Math.random()*210 +1);
+		return qRepository.getOne((long) qno).getContent();
 	}
 }

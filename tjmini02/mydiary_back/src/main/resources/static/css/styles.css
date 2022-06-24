@@ -11338,3 +11338,6 @@ body.sb-sidenav-toggled #wrapper #sidebar-wrapper {
 	display : flex;
 	flex-direction: row;
 }
+.disable{
+     color: gray;
+}

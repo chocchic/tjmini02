@@ -1,5 +1,6 @@
 package com.mydiary.persistence;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -116,6 +117,36 @@ public class QuerydslRepositoryImpl extends QuerydslRepositorySupport implements
 		
 		// 결과를 리턴
 		return new PageImpl<Object[]>(result.stream().map(t->t.toArray()).collect(Collectors.toList()), pageable, tuple.fetchCount());
+	}
+
+	@Override
+	public Diary searchNext(Long dno, Long mno, LocalDateTime regdate) {
+		QDiary diary = QDiary.diary;
+		BooleanBuilder conditionBuilder = new BooleanBuilder();
+
+		conditionBuilder.and(diary.dno.gt(dno));
+		conditionBuilder.and(diary.member.mno.eq(mno));
+		JPQLQuery<Diary> jpqlquery = from(diary).where(conditionBuilder).limit(1).fetchAll();
+		List<Diary> result = jpqlquery.fetch();
+		if(result.size()>0) {
+		return result.get(0);
+		}
+		return null;
+	}
+
+	@Override
+	public Diary searchPrev(Long dno, Long mno, LocalDateTime regdate) {
+		QDiary diary = QDiary.diary;
+		BooleanBuilder conditionBuilder = new BooleanBuilder();
+
+		conditionBuilder.and(diary.dno.lt(dno));
+		conditionBuilder.and(diary.member.mno.eq(mno));
+		JPQLQuery<Diary> jpqlquery = from(diary).where(conditionBuilder).fetchAll();
+		List<Diary> result = jpqlquery.fetch();
+		if(result.size() > 0) {
+			return result.get(result.size()-1);
+		}
+		return null;
 	}
 
 }

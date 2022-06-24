@@ -1,5 +1,6 @@
 package com.mydiary;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Properties;
 import java.util.stream.IntStream;
@@ -152,7 +153,7 @@ public class TestCase {
 		}	
 	}
 	
-	@Test
+	//@Test
 	public void sendTest() {
 		System.out.println("start sending...");
 		String host = "smtp.naver.com"; // 네이버의 smpt 서버를 사용(2022년 5월 30일부터 구글은 허용안하는 듯 함)
@@ -190,7 +191,7 @@ public class TestCase {
 
             // Text
             // 추천 질문을 db로부터 받아서 내용으로 전달
-            String Q = ""; //questionService.getQ();
+            String Q = ""; //questionService.getQ();model.addAttribute("nextdto", nextdiaryDTO);
             message.setText("님 오늘하루 어떠셨나요? 오늘 하루를 되돌아 보며 일기를 작성해주세요"+Q); 
             
             // send the message
@@ -201,5 +202,11 @@ public class TestCase {
             // TODO Auto-generated catch block
         }
         System.out.println("end sending...");
+	}
+	
+	//@Test
+	public void testquery() {
+		LocalDateTime date = LocalDateTime.of(2022, 6, 21, 11, 15, 44);
+		System.out.println(d.searchPrev(5L, 101L, date));
 	}
 }

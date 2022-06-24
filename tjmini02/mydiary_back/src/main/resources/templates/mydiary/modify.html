@@ -2,89 +2,178 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <th:block th:replace="~{/layout/basic :: setContent(~{this::content} )}">
    <th:block th:fragment="content">
-      <h1 class="mt-4">Board Modify Page</h1>
-      <form action="/board/modify" method="post">
-
-         <!--페이지 번호  -->
-         <input type="hidden" name="page" th:value="${requestDTO.page}">
-         <input type="hidden" name="type" th:value="${requestDTO.type}">
-         <input type="hidden" name="keyword" th:value="${requestDTO.keyword}">
-
+      <h1 class="mt-4">[[${#temporals.format(dto.regdate, 'yyyy년 MM월 dd일')}]]의 일기 고치기</h1>
+      <form th:action="@{/mydiary/modify}" method="post" enctype="multipart/form-data">
+     	<input type="hidden" name="dno" th:value="${dto.dno}">
          <div class="form-group">
-            <label>Bno</label> <input type="text" class="form-control"
-               name="bno" th:value="${dto.bno}" readonly>
-         </div>
-
-         <div class="form-group">
-            <label>Title</label> <input type="text" class="form-control"
-               name="title" th:value="${dto.title}">
+            <label>일기 제목</label> 
+            <input type="text" class="form-control" name="title" th:value="${dto.title}">
          </div>
          <div class="form-group">
-            <label>Content</label>
+         	<label>이 날의 날씨</label>
+         	<input type="text" class="form-control" name="weather" th:value="${dto.weather}">
+         </div>
+         <div class="form-group">
+            <label>일기 내용</label>
             <textarea class="form-control" rows="5" name="content">[[${dto.content}]]</textarea>
          </div>
-         <div class="form-group">
-            <label>Writer</label> <input type="text" class="form-control"
-               name="member" th:value="${dto.memberEmail}" readonly>
-         </div>
-         <div class="form-group">
-            <label>RegDate</label> <input type="text" class="form-control"
-               th:value="${#temporals.format(dto.regdate, 'yyyy/MM/dd HH:mm:ss')}"
-               readonly>
-         </div>
-         <div class="form-group">
-            <label>ModDate</label> <input type="text" class="form-control"
-               th:value="${#temporals.format(dto.moddate, 'yyyy/MM/dd HH:mm:ss')}"
-               readonly>
-         </div>
+               <div class="form-check">
+      	<label>비밀글인가요?</label>
+      	<input class="form-check-input" type="checkbox" name="isSecret" value="1" id="isSecret_true">
+		<input type="hidden" name="isSecret" value='0' id="isSecret_flase"/>
+      </div>
+      <div class="form-check">
+      	<label>답글을 달 수 있나요?</label>
+      	<input class="form-check-input" type="checkbox" name="canReply" id="canReply_true" value="1">
+      	<input type="hidden" name="canReply" value='0' id="canReply_flase"/>
+      </div>
+      <div class ="form-group">
+      	<label>새로운 사진 업로드</label>
+	      <div class = "uploadResult">
+			
+		  </div>
+      <input name ="image" id="uploadFiles" type="file" accept="image/*" multiple/>
+      </div>
+      <input type="hidden" name = "member_mno" th:value="${mno}"/>
+      
+      <input type="hidden" name="page" th:value="${requestDTO.page}">
+       <input type="hidden" name="type" th:value="${requestDTO.type}">
+       <input type="hidden" name="keyword" th:value="${requestDTO.keyword}">
       </form>
+      
+      <div class="form-group">
+      	<label>이 날의 사진</label>
+		<p id="nopic" th:if="${#lists.size(dto.imagelist)} == 0">저장된 이날의 사진이 없습니다.<br/></p>
+	  </div>
+		<div class="row row-cols-1 row-cols-md-4 g-4" >
+		  <div class="col" th:each="img : ${dto.imagelist}" th:id="${img.ino}">
+			<div class="card h-100" >
+			  <img th:src="@{/images/}+${img.imageurl}" width="200px" heigth="200px"
+			  class="card-img-top" alt="사진 불러오기를 실패했습니다.">
+			  <div class="card-footer">
+			  	<button class="btn btn-warning picdeleteBtn" th:value="${img.ino}">[[${img.name}]] 삭제하기</button>
+			  </div>
+			</div>
+	      </div>
+      	</div>
 
       <button type="button" class="btn btn-primary modifyBtn">수정</button>
       <button type="button" class="btn btn-info listBtn">목록</button>
       <button type="button" class="btn btn-danger removeBtn">삭제</button>
 
       <script th:inline="javascript">
-      var actionForm = $("form"); //form 태그 객체
+      $( document ).ready(function() {
+   	    if(document.getElementById("isSecret_true").checked) {
+   		  document.getElementById("inSecret_false").disabled = true;
+   		}
+   		if(document.getElementById("canReply_true").checked) {
+   		  document.getElementById("canReply_false").disabled = true;
+   		}
+    	document.getElementById("uploadFiles").addEventListener("change", (e)=>{
+			// 이벤트를 처리할 때 this는 이벤트가 발생한 객체
+			// 여기서는 document.getElementByID("uploadFiles")입니다.
+			if(document.getElementById("nopic") != null){
+				document.getElementById("nopic").empty();
+			}
+			readURL(e.target);
+		});
+    		function readURL(e){
+    			console.log(e);
+    			var files = e.files;
+    			var fileArr = Array.prototype.slice.call(files);
+    			var divArea = $('.uploadResult');
+    			divArea.empty();
+    			fileArr.forEach(function(f){
+    				var filename = f.name;
+    				var reader = new FileReader();
+    				
+    				reader.onload = function(e){
+    					divArea.append("<img src='"+e.target.result+"' width='200px' height='200px'>");
+    				}
+    				reader.readAsDataURL(f);
+    			});
+      		}		
+    		
+    		function showUploadedImages(ar){
+    			console.log("show : " + ar);
+    			var divArea = $('.uploadResult');
+   				for(var i = 0; i < ar.length; i++){
+   					divArea.append("<img src='"+URL.createObjectURL(ar[i])+"' width='200px' height='200px'>");
+   				}	
+    		}
+    	      var actionForm = $("form"); //form 태그 객체
 
-      $(".removeBtn").click(function(){
-             if(!confirm("삭제하시겠습니까?")){
-          return ;
-        }        
-           actionForm
-                .attr("action", "/board/remove")
-                .attr("method","post");
+    	      $(".removeBtn").click(function(){
+    	      	if(!confirm("삭제하시겠습니까?")){
+    	          return ;
+    	      	}
+    	      	 var dno = $("input[name='dno']");
+     	        actionForm.empty();
+     	        actionForm.append(dno);
+    	           actionForm
+    	                .attr("action", "/mydiary/remove")
+    	                .attr("method","post");
 
-        actionForm.submit();
-      });
+    	        actionForm.submit();
+    	      });
 
-      $(".modifyBtn").click(function() {
-        if(!confirm("수정하시겠습니까?")){
-          return ;
-        }
-        actionForm
-                .attr("action", "/board/modify")
-                .attr("method","post")
-                .submit();
-      });
-      
-      $(".listBtn").click(function() {
-        //var pageInfo = $("input[name='page']");
-        var page = $("input[name='page']");
-        var type = $("input[name='type']");
-        var keyword = $("input[name='keyword']");
+    	      $(".modifyBtn").click(function() {
+    	    	 console.log("modify버튼 클릭");
+    	         if(!confirm("수정하시겠습니까?")){
+    	          return ;
+    	         }
+    	        actionForm.submit();
+    	      });
+    	      
+    	      $(".listBtn").click(function() {
+    	        var page = $("input[name='page']");
+    	        var type = $("input[name='type']");
+    	        var keyword = $("input[name='keyword']");
 
-        actionForm.empty(); //form 태그의 모든 내용을 지우고
+    	        actionForm.empty(); //form 태그의 모든 내용을 지우고
 
-        actionForm.append(page);
-        actionForm.append(type);
-        actionForm.append(keyword);
-        
-        actionForm
-                .attr("action", "/board/list")
-                .attr("method","get");
+    	        actionForm.append(page);
+    	        actionForm.append(type);
+    	        actionForm.append(keyword);
+    	        
+    	        actionForm
+    	                .attr("action", "/mydiary/home")
+    	                .attr("method","get");
 
-        actionForm.submit();
+    	        actionForm.submit();
+    	      });
+    	      
+    	      $(".picdeleteBtn").click(function(e){
+    	    	  var picdelete = e.target.value;
+    	    	  
+    	    	  if(!confirm('업로드된 사진이 삭제됩니다.')){
+    	    		  return;
+    	    	  }
+		    	  $.ajax({
+		          	url:"/mydiary/deletepicture",
+		          	data: {ino : picdelete},
+		          	type:"POST",
+		          	dataType:"text",
+		          	//async: false,
+		          	sucess:function(result){
+		          		
+		          	},
+		          	error:function(jqXHR, textstatus, errorThrown){
+		          		console.log(textstatus);
+		          	}
+		          })
+		          .done(function(result){
+		          		console.log(result);
+		          		if(result=='success'){
+	          				alert('사진 삭제 성공!');
+	          				$('#'+picdelete).empty();
+		          		}
+		          })
+    	      })
+    	   	  
       })
+  	
+
     </script>
 
    </th:block>
